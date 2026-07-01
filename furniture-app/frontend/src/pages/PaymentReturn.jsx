@@ -120,7 +120,7 @@ export default function PaymentReturn() {
               <p style={{ fontSize: 13, color: "#666", lineHeight: 1.7, margin: 0 }}>
                 Vui lòng kiểm tra lại thông tin thẻ hoặc tài khoản và thử lại.
                 Nếu vấn đề vẫn tiếp tục, hãy liên hệ hỗ trợ tại{" "}
-                <span style={{ color: C.wood }}>support@funiro.com</span>.
+                <span style={{ color: C.wood }}>support@AmoreHome.com</span>.
               </p>
             </div>
 

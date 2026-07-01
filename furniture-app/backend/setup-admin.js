@@ -1,5 +1,5 @@
 /**
- * FUNIRO — Tạo Admin User
+ * Amore Home — Tạo Admin User
  * Chạy: node setup-admin.js
  * 
  * Script này chỉ tạo tài khoản admin để đăng nhập backoffice.
@@ -64,7 +64,7 @@ function askPassword(rl, question) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 console.log("\n╔══════════════════════════════════════╗");
-console.log("║  FUNIRO — Tạo tài khoản Admin         ║");
+console.log("║  Amore Home — Tạo tài khoản Admin         ║");
 console.log("╚══════════════════════════════════════╝\n");
 
 console.log("🔌 Connecting to:", MONGODB_URI);

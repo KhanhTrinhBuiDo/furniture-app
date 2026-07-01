@@ -38,13 +38,13 @@ export async function sendOTPEmail(toEmail, otp) {
 
   const transporter = createTransporter();
   await transporter.sendMail({
-    from: `"Funiro Support" <${process.env.EMAIL_USER}>`,
+    from: `"Amore Home Support" <${process.env.EMAIL_USER}>`,
     to: toEmail,
-    subject: `[Funiro] Mã OTP: ${otp}`,
+    subject: `[Amore Home] Mã OTP: ${otp}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden">
         <div style="background:#4A2C1A;padding:28px 32px">
-          <h1 style="color:#FAF7F2;font-size:1.4rem;margin:0">Funiro.</h1>
+          <h1 style="color:#FAF7F2;font-size:1.4rem;margin:0">Amore Home.</h1>
         </div>
         <div style="padding:32px">
           <h2 style="color:#4A2C1A;font-size:1.1rem;margin:0 0 12px">Đặt lại mật khẩu</h2>
@@ -57,7 +57,7 @@ export async function sendOTPEmail(toEmail, otp) {
           <p style="color:#999;font-size:12px;margin:0">Mã có hiệu lực trong <strong>10 phút</strong>.</p>
         </div>
         <div style="background:#F0E8DC;padding:16px 32px;font-size:11px;color:#bbb;text-align:center">
-          © ${new Date().getFullYear()} Funiro Furniture
+          © ${new Date().getFullYear()} Amore Home Furniture
         </div>
       </div>
     `,
@@ -72,18 +72,18 @@ export async function sendWelcomeEmail(toEmail, fullName) {
   }
   const transporter = createTransporter();
   await transporter.sendMail({
-    from: `"Funiro" <${process.env.EMAIL_USER}>`,
+    from: `"Amore Home" <${process.env.EMAIL_USER}>`,
     to: toEmail,
-    subject: "Chào mừng bạn đến với Funiro! 🛋️",
+    subject: "Chào mừng bạn đến với Amore Home! 🛋️",
     html: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto">
         <div style="background:#4A2C1A;padding:28px 32px">
-          <h1 style="color:#FAF7F2;font-size:1.4rem;margin:0">Funiro.</h1>
+          <h1 style="color:#FAF7F2;font-size:1.4rem;margin:0">Amore Home.</h1>
         </div>
         <div style="padding:32px">
           <h2 style="color:#4A2C1A">Xin chào, ${fullName}! 👋</h2>
           <p style="color:#666;font-size:14px;line-height:1.7">
-            Cảm ơn bạn đã đăng ký tài khoản tại <strong>Funiro</strong>.
+            Cảm ơn bạn đã đăng ký tài khoản tại <strong>Amore Home</strong>.
           </p>
           <a href="${process.env.CORS_ORIGIN || 'http://localhost:3000'}"
             style="display:inline-block;background:#8B5E3C;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px">

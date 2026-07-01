@@ -11,7 +11,7 @@ const blogSchema = new mongoose.Schema({
     coverImage: { type: String, default: "" },
     tags: [{ type: String }],
     category: { type: String, default: "Ý tưởng nội thất" },
-    author: { type: String, default: "Funiro Team" },
+    author: { type: String, default: "Amore Home Team" },
     isPublished: { type: Boolean, default: true },
     viewCount: { type: Number, default: 0 },
 }, { timestamps: true });

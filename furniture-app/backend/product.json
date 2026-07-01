@@ -1,0 +1,831 @@
+[
+    {
+        "name": "Ghế Sofa Bắc Âu SF001",
+        "description": "Ghế sofa phong cách Bắc Âu bọc vải cao cấp, phù hợp phòng khách hiện đại.",
+        "price": 15990000,
+        "salePrice": 13990000,
+        "category": "LIVING ROOM",
+        "images": [
+            "/images/products/sofa1.jpg",
+            "/images/products/sofa2.jpg"
+        ],
+        "stock": 20,
+        "tags": [
+            "sofa",
+            "living room"
+        ],
+        "style": "Scandinavian",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Vải nhung"
+            },
+            {
+                "key": "Khung",
+                "value": "Gỗ sồi"
+            }
+        ]
+    },
+    {
+        "name": "Kệ TV Gỗ Tự Nhiên TV001",
+        "description": "Kệ TV thiết kế tối giản với nhiều ngăn chứa.",
+        "price": 6990000,
+        "salePrice": 6290000,
+        "category": "LIVING ROOM",
+        "images": [
+            "/images/products/tv-stand1.jpg"
+        ],
+        "stock": 15,
+        "tags": [
+            "tv stand",
+            "cabinet"
+        ],
+        "style": "Minimal",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ MDF chống ẩm"
+            },
+            {
+                "key": "Chiều dài",
+                "value": "180 cm"
+            }
+        ]
+    },
+    {
+        "name": "Bàn Trà Tròn BT001",
+        "description": "Bàn trà mặt đá kết hợp chân kim loại sơn tĩnh điện.",
+        "price": 4290000,
+        "category": "LIVING ROOM",
+        "images": [
+            "/images/products/coffee-table1.jpg"
+        ],
+        "stock": 18,
+        "tags": [
+            "coffee table"
+        ],
+        "style": "Modern",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Mặt bàn",
+                "value": "Đá Ceramic"
+            },
+            {
+                "key": "Đường kính",
+                "value": "80 cm"
+            }
+        ]
+    },
+    {
+        "name": "Ghế Thư Giãn GT001",
+        "description": "Ghế thư giãn bọc da tổng hợp mềm mại.",
+        "price": 8990000,
+        "salePrice": 7990000,
+        "category": "LIVING ROOM",
+        "images": [
+            "/images/products/lounge-chair1.jpg"
+        ],
+        "stock": 10,
+        "tags": [
+            "chair",
+            "relax"
+        ],
+        "style": "Luxury",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Da PU"
+            },
+            {
+                "key": "Tải trọng",
+                "value": "150 kg"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Trang Trí TT001",
+        "description": "Tủ trưng bày với cửa kính cường lực.",
+        "price": 7590000,
+        "category": "LIVING ROOM",
+        "images": [
+            "/images/products/display1.jpg"
+        ],
+        "stock": 12,
+        "tags": [
+            "cabinet",
+            "display"
+        ],
+        "style": "Japandi",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chiều cao",
+                "value": "190 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ sồi"
+            }
+        ]
+    },
+    {
+        "name": "Bàn Đảo Bếp KB001",
+        "description": "Bàn đảo bếp tích hợp ngăn kéo và kệ lưu trữ.",
+        "price": 9990000,
+        "salePrice": 9290000,
+        "category": "KITCHEN",
+        "images": [
+            "/images/products/kitchen-island1.jpg"
+        ],
+        "stock": 8,
+        "tags": [
+            "kitchen",
+            "island"
+        ],
+        "style": "Modern",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Mặt bàn",
+                "value": "Đá nhân tạo"
+            },
+            {
+                "key": "Khung",
+                "value": "Gỗ MDF"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Bếp Treo Tường KB002",
+        "description": "Tủ bếp treo tường tiết kiệm không gian.",
+        "price": 5490000,
+        "category": "KITCHEN",
+        "images": [
+            "/images/products/kitchen-cabinet1.jpg"
+        ],
+        "stock": 16,
+        "tags": [
+            "cabinet",
+            "kitchen"
+        ],
+        "style": "Minimal",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ MDF chống ẩm"
+            },
+            {
+                "key": "Chiều rộng",
+                "value": "120 cm"
+            }
+        ]
+    },
+    {
+        "name": "Xe Đẩy Nhà Bếp KB003",
+        "description": "Xe đẩy đa năng hỗ trợ lưu trữ dụng cụ nhà bếp.",
+        "price": 2390000,
+        "salePrice": 1990000,
+        "category": "KITCHEN",
+        "images": [
+            "/images/products/kitchen-cart1.jpg"
+        ],
+        "stock": 30,
+        "tags": [
+            "storage",
+            "cart"
+        ],
+        "style": "Industrial",
+        "isFeatured": false,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Số tầng",
+                "value": "3"
+            },
+            {
+                "key": "Khung",
+                "value": "Thép sơn tĩnh điện"
+            }
+        ]
+    },
+    {
+        "name": "Kệ Gia Vị KB004",
+        "description": "Kệ gia vị nhiều tầng bằng gỗ tự nhiên.",
+        "price": 890000,
+        "category": "KITCHEN",
+        "images": [
+            "/images/products/spice-rack1.jpg"
+        ],
+        "stock": 40,
+        "tags": [
+            "spice",
+            "rack"
+        ],
+        "style": "Scandinavian",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ tre"
+            },
+            {
+                "key": "Số tầng",
+                "value": "2"
+            }
+        ]
+    },
+    {
+        "name": "Kệ Lò Vi Sóng KB005",
+        "description": "Kệ lò vi sóng tích hợp ngăn chứa tiện lợi.",
+        "price": 1690000,
+        "salePrice": 1490000,
+        "category": "KITCHEN",
+        "images": [
+            "/images/products/microwave-rack1.jpg"
+        ],
+        "stock": 22,
+        "tags": [
+            "microwave",
+            "rack"
+        ],
+        "style": "Minimal",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Khung",
+                "value": "Thép carbon"
+            },
+            {
+                "key": "Mặt kệ",
+                "value": "Gỗ MDF"
+            }
+        ]
+    },
+    {
+        "name": "Giường Gỗ Hiện Đại BR001",
+        "description": "Giường ngủ gỗ tự nhiên thiết kế tối giản, mang lại sự ấm cúng cho phòng ngủ.",
+        "price": 12990000,
+        "salePrice": 11490000,
+        "category": "BEDROOM",
+        "images": [
+            "/images/products/bed1.jpg",
+            "/images/products/bed2.jpg"
+        ],
+        "stock": 12,
+        "tags": [
+            "bed",
+            "bedroom"
+        ],
+        "style": "Minimal",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Kích thước",
+                "value": "180x200 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ sồi tự nhiên"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Quần Áo Cửa Lùa BR002",
+        "description": "Tủ quần áo cửa lùa tiết kiệm diện tích với nhiều ngăn chứa.",
+        "price": 14990000,
+        "category": "BEDROOM",
+        "images": [
+            "/images/products/wardrobe1.jpg"
+        ],
+        "stock": 10,
+        "tags": [
+            "wardrobe",
+            "closet"
+        ],
+        "style": "Scandinavian",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Chiều rộng",
+                "value": "200 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ MDF chống ẩm"
+            }
+        ]
+    },
+    {
+        "name": "Tab Đầu Giường BR003",
+        "description": "Tab đầu giường nhỏ gọn với ngăn kéo tiện dụng.",
+        "price": 2290000,
+        "salePrice": 1990000,
+        "category": "BEDROOM",
+        "images": [
+            "/images/products/nightstand1.jpg"
+        ],
+        "stock": 25,
+        "tags": [
+            "nightstand",
+            "bedroom"
+        ],
+        "style": "Japandi",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Số ngăn",
+                "value": "2"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ cao su"
+            }
+        ]
+    },
+    {
+        "name": "Bàn Trang Điểm BR004",
+        "description": "Bàn trang điểm tích hợp gương LED và ngăn chứa mỹ phẩm.",
+        "price": 5990000,
+        "salePrice": 5490000,
+        "category": "BEDROOM",
+        "images": [
+            "/images/products/vanity1.jpg"
+        ],
+        "stock": 14,
+        "tags": [
+            "vanity",
+            "mirror"
+        ],
+        "style": "Modern",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Đèn",
+                "value": "LED cảm ứng"
+            },
+            {
+                "key": "Gương",
+                "value": "Gương chống mờ"
+            }
+        ]
+    },
+    {
+        "name": "Ghế Đôn Phòng Ngủ BR005",
+        "description": "Ghế đôn bọc nỉ mềm mại dùng để ngồi hoặc trang trí.",
+        "price": 1890000,
+        "category": "BEDROOM",
+        "images": [
+            "/images/products/ottoman1.jpg"
+        ],
+        "stock": 30,
+        "tags": [
+            "ottoman",
+            "chair"
+        ],
+        "style": "Luxury",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Vải nỉ"
+            },
+            {
+                "key": "Khung",
+                "value": "Gỗ tự nhiên"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Lavabo Treo Tường BA001",
+        "description": "Tủ lavabo chống nước với thiết kế hiện đại.",
+        "price": 6990000,
+        "salePrice": 6290000,
+        "category": "BATHROOM",
+        "images": [
+            "/images/products/vanity-bath1.jpg"
+        ],
+        "stock": 9,
+        "tags": [
+            "bathroom",
+            "cabinet"
+        ],
+        "style": "Modern",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "PVC chống nước"
+            },
+            {
+                "key": "Chiều rộng",
+                "value": "80 cm"
+            }
+        ]
+    },
+    {
+        "name": "Kệ Nhà Tắm BA002",
+        "description": "Kệ treo tường giúp sắp xếp đồ dùng phòng tắm gọn gàng.",
+        "price": 990000,
+        "category": "BATHROOM",
+        "images": [
+            "/images/products/bath-shelf1.jpg"
+        ],
+        "stock": 45,
+        "tags": [
+            "shelf",
+            "bathroom"
+        ],
+        "style": "Minimal",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Inox 304"
+            },
+            {
+                "key": "Tải trọng",
+                "value": "20 kg"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Gương Nhà Tắm BA003",
+        "description": "Tủ gương đa năng tích hợp ngăn chứa đồ cá nhân.",
+        "price": 3990000,
+        "salePrice": 3590000,
+        "category": "BATHROOM",
+        "images": [
+            "/images/products/mirror-cabinet1.jpg"
+        ],
+        "stock": 15,
+        "tags": [
+            "mirror",
+            "cabinet"
+        ],
+        "style": "Scandinavian",
+        "isFeatured": false,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Gương",
+                "value": "Chống bám hơi nước"
+            },
+            {
+                "key": "Đèn",
+                "value": "LED"
+            }
+        ]
+    },
+    {
+        "name": "Giá Treo Khăn BA004",
+        "description": "Giá treo khăn bằng inox chống gỉ.",
+        "price": 690000,
+        "category": "BATHROOM",
+        "images": [
+            "/images/products/towel-rack1.jpg"
+        ],
+        "stock": 50,
+        "tags": [
+            "towel",
+            "rack"
+        ],
+        "style": "Industrial",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Inox SUS304"
+            },
+            {
+                "key": "Chiều dài",
+                "value": "60 cm"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Đựng Đồ Phòng Tắm BA005",
+        "description": "Tủ đứng nhiều tầng giúp tối ưu không gian lưu trữ.",
+        "price": 2890000,
+        "salePrice": 2590000,
+        "category": "BATHROOM",
+        "images": [
+            "/images/products/bath-storage1.jpg"
+        ],
+        "stock": 18,
+        "tags": [
+            "storage",
+            "bathroom"
+        ],
+        "style": "Minimal",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Số tầng",
+                "value": "4"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ nhựa chống nước"
+            }
+        ]
+    },
+    {
+        "name": "Tranh Canvas Phong Cảnh DC001",
+        "description": "Tranh canvas phong cảnh Bắc Âu mang đến điểm nhấn tinh tế cho không gian sống.",
+        "price": 1290000,
+        "salePrice": 1090000,
+        "category": "DECORATION",
+        "images": [
+            "/images/products/canvas1.jpg"
+        ],
+        "stock": 35,
+        "tags": [
+            "canvas",
+            "wall art"
+        ],
+        "style": "Scandinavian",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Kích thước",
+                "value": "60x90 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Canvas chống nước"
+            }
+        ]
+    },
+    {
+        "name": "Đèn Bàn Trang Trí DC002",
+        "description": "Đèn bàn LED ánh sáng vàng tạo không gian ấm cúng.",
+        "price": 1590000,
+        "category": "DECORATION",
+        "images": [
+            "/images/products/table-lamp1.jpg"
+        ],
+        "stock": 28,
+        "tags": [
+            "lamp",
+            "lighting"
+        ],
+        "style": "Modern",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Công suất",
+                "value": "12W"
+            },
+            {
+                "key": "Nguồn sáng",
+                "value": "LED"
+            }
+        ]
+    },
+    {
+        "name": "Đồng Hồ Treo Tường DC003",
+        "description": "Đồng hồ treo tường thiết kế tối giản, phù hợp nhiều phong cách nội thất.",
+        "price": 890000,
+        "salePrice": 790000,
+        "category": "DECORATION",
+        "images": [
+            "/images/products/wall-clock1.jpg"
+        ],
+        "stock": 40,
+        "tags": [
+            "clock",
+            "wall decor"
+        ],
+        "style": "Minimal",
+        "isFeatured": false,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Đường kính",
+                "value": "40 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Kim loại sơn tĩnh điện"
+            }
+        ]
+    },
+    {
+        "name": "Bình Hoa Gốm DC004",
+        "description": "Bình hoa gốm thủ công với tông màu trung tính.",
+        "price": 690000,
+        "category": "DECORATION",
+        "images": [
+            "/images/products/vase1.jpg"
+        ],
+        "stock": 50,
+        "tags": [
+            "vase",
+            "ceramic"
+        ],
+        "style": "Japandi",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Chất liệu",
+                "value": "Gốm sứ"
+            },
+            {
+                "key": "Chiều cao",
+                "value": "32 cm"
+            }
+        ]
+    },
+    {
+        "name": "Cây Xanh Trang Trí DC005",
+        "description": "Cây xanh nhân tạo giúp không gian thêm tươi mới.",
+        "price": 1190000,
+        "salePrice": 990000,
+        "category": "DECORATION",
+        "images": [
+            "/images/products/plant1.jpg"
+        ],
+        "stock": 24,
+        "tags": [
+            "plant",
+            "decoration"
+        ],
+        "style": "Natural",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Chiều cao",
+                "value": "120 cm"
+            },
+            {
+                "key": "Chậu",
+                "value": "Xi măng"
+            }
+        ]
+    },
+    {
+        "name": "Bàn Ăn Gỗ Sồi DR001",
+        "description": "Bàn ăn gỗ sồi tự nhiên dành cho 6 người.",
+        "price": 9990000,
+        "salePrice": 8990000,
+        "category": "DINING ROOM",
+        "images": [
+            "/images/products/dining-table1.jpg"
+        ],
+        "stock": 10,
+        "tags": [
+            "table",
+            "dining"
+        ],
+        "style": "Scandinavian",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Kích thước",
+                "value": "160x80x75 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ sồi"
+            }
+        ]
+    },
+    {
+        "name": "Ghế Ăn Bọc Nệm DR002",
+        "description": "Ghế ăn chân gỗ bọc nệm tạo cảm giác thoải mái.",
+        "price": 1990000,
+        "category": "DINING ROOM",
+        "images": [
+            "/images/products/dining-chair1.jpg"
+        ],
+        "stock": 36,
+        "tags": [
+            "chair",
+            "dining"
+        ],
+        "style": "Modern",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Khung",
+                "value": "Gỗ cao su"
+            },
+            {
+                "key": "Đệm",
+                "value": "Vải bố"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Buffet DR003",
+        "description": "Tủ buffet lưu trữ chén đĩa và đồ dùng phòng ăn.",
+        "price": 7990000,
+        "salePrice": 7290000,
+        "category": "DINING ROOM",
+        "images": [
+            "/images/products/buffet1.jpg"
+        ],
+        "stock": 14,
+        "tags": [
+            "buffet",
+            "cabinet"
+        ],
+        "style": "Minimal",
+        "isFeatured": true,
+        "isNewProduct": false,
+        "specifications": [
+            {
+                "key": "Chiều dài",
+                "value": "150 cm"
+            },
+            {
+                "key": "Chất liệu",
+                "value": "Gỗ MDF phủ Melamine"
+            }
+        ]
+    },
+    {
+        "name": "Tủ Rượu DR004",
+        "description": "Tủ rượu kính cường lực kết hợp hệ thống đèn LED.",
+        "price": 12990000,
+        "category": "DINING ROOM",
+        "images": [
+            "/images/products/wine-cabinet1.jpg"
+        ],
+        "stock": 8,
+        "tags": [
+            "wine",
+            "cabinet"
+        ],
+        "style": "Luxury",
+        "isFeatured": true,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Đèn",
+                "value": "LED"
+            },
+            {
+                "key": "Cửa",
+                "value": "Kính cường lực"
+            }
+        ]
+    },
+    {
+        "name": "Xe Phục Vụ DR005",
+        "description": "Xe phục vụ đa năng dùng cho phòng ăn hoặc quầy bar gia đình.",
+        "price": 2690000,
+        "salePrice": 2390000,
+        "category": "DINING ROOM",
+        "images": [
+            "/images/products/serving-cart1.jpg"
+        ],
+        "stock": 18,
+        "tags": [
+            "cart",
+            "dining"
+        ],
+        "style": "Industrial",
+        "isFeatured": false,
+        "isNewProduct": true,
+        "specifications": [
+            {
+                "key": "Số tầng",
+                "value": "3"
+            },
+            {
+                "key": "Khung",
+                "value": "Thép sơn tĩnh điện"
+            }
+        ]
+    }
+]

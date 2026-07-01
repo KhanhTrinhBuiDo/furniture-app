@@ -86,7 +86,7 @@ export default function LoginPage() {
                 <img src={HERO_IMG} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.8rem,4vw,2.6rem)", fontWeight: 700, color: C.coffee, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                        Welcome to Funiro
+                        Welcome to Amore Home
                     </h1>
                 </div>
             </div>

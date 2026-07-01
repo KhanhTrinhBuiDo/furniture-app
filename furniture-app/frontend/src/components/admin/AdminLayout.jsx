@@ -29,7 +29,7 @@ export default function AdminLayout({ children, activePage }) {
                             <path d="M7 20V10l7-4 7 4v10" stroke="#FAF7F2" strokeWidth="1.5" strokeLinejoin="round" />
                             <rect x="11" y="14" width="6" height="6" rx="1" fill="#FAF7F2" />
                         </svg>
-                        <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1rem", color: "#FAF7F2", fontWeight: 700 }}>Funiro.</span>
+                        <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1rem", color: "#FAF7F2", fontWeight: 700 }}>Amore Home.</span>
                     </button>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "8px 0 0", letterSpacing: "0.1em", textTransform: "uppercase" }}>Admin Panel</p>
                 </div>

@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
                         fontWeight: 700, color: "#6D3914",
                         letterSpacing: "0.05em", textTransform: "uppercase",
                     }}>
-                        Welcome to Funiro
+                        Welcome to Amore Home
                     </h1>
                 </div>
             </div>

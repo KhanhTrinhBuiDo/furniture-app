@@ -103,7 +103,7 @@ export default function Footer() {
                                 <rect x="11" y="14" width="6" height="6" rx="1" fill="#4A2C1A" />
                             </svg>
                             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", color: C.heading, fontWeight: 700, letterSpacing: "0.03em" }}>
-                                Funiro.
+                                Amore Home.
                             </span>
                         </button>
 
@@ -113,7 +113,7 @@ export default function Footer() {
                         </p>
 
                         <p style={{ fontSize: 12, lineHeight: 1.8, color: C.dim }}>
-                            support@funiro.com<br />
+                            support@Amore Home.com<br />
                             +62 (299) 466 3455
                         </p>
 
@@ -235,7 +235,7 @@ export default function Footer() {
                 {/* ── Divider ─────────────────────────────────────────────────── */}
                 <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                     <p style={{ fontSize: 11, color: C.dim, margin: 0 }}>
-                        © {new Date().getFullYear()} Funiro Furniture. All rights reserved.
+                        © {new Date().getFullYear()} Amore Home Furniture. All rights reserved.
                     </p>
                     <div style={{ display: "flex", gap: 24 }}>
                         {["Chính sách bảo mật", "Điều khoản sử dụng", "Cookie"].map((t) => (

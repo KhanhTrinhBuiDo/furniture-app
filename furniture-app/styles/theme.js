@@ -1,26 +1,31 @@
-// ─── Funiro Design Tokens ─────────────────────────────────────────────────────
-// Bảng màu: Vanilla · Almond · Caramel · Coffee · Mocca · Espresso
+// ─── Amore Home Design Tokens ─────────────────────────────────────────────────
 export const theme = {
-  // Core brand
-  primary: "#8B5E3C",   // Caramel / Wood
-  dark: "#4A2C1A",   // Espresso
-  bg: "#FAF7F2",   // Vanilla (page background)
-  soft: "#F0E8DC",   // Beige (card, hero bg)
+  // Brand
+  brandName: "Amore Home",
+  brandTagline: "Không gian sống — Tinh tế & Ấm áp",
 
-  // Extended palette
-  almond: "#B7957F",   // Almond
-  sand: "#D9C9B0",   // Light sand
-  tan: "#C4A882",   // Tan / muted text
-  mocca: "#84593D",   // Mocca
-  coffee: "#6D3914",   // Coffee
+  // Core palette
+  primary: "#B8860B",   // Gold — main CTA
+  dark: "#1A1A2E",   // Deep navy
+  bg: "#FAF7F2",   // Warm ivory
+  soft: "#F0E8DC",   // Beige card bg
+
+  // Extended
+  cream: "#FAF7F2",
+  beige: "#F0E8DC",
+  sand: "#D9C9B0",
+  tan: "#C4A882",
+  gold: "#C9A96E",
+  champagne: "#F5E6C8",
 
   // Semantic
-  green: "#6B7C5C",   // Sage / success
-  orange: "#C47B5A",   // Terracotta / error / sale badge
-  matcha: "#A8C55B",   // Matcha accent
+  green: "#27AE60",   // success
+  warn: "#E67E22",   // warning
+  error: "#C0392B",   // error / sale
+  info: "#2980B9",
 
   // Typography
-  fontDisplay: "'Playfair Display', serif",
+  fontDisplay: "'Cormorant Garamond', 'Playfair Display', serif",
   fontBody: "'Poppins', sans-serif",
 };
 

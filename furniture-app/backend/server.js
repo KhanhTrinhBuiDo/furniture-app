@@ -100,7 +100,7 @@ for (const { path, router, name } of dbRoutes) {
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/", (_req, res) => res.json({
-  message: "Funiro Backend API v4",
+  message: "Amore Home Backend API v4",
   mongodb: dbConnected ? "✅ connected" : "❌ not connected",
 }));
 
