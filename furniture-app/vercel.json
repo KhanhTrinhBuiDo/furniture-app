@@ -1,13 +1,18 @@
 {
     "version": 2,
-    "buildCommand": "npm install --prefix frontend && npx --prefix frontend vite build",
-    "outputDirectory": "frontend/dist",
-    "installCommand": "npm install",
-    "functions": {
-        "backend/server-vercel.js": {
-            "includeFiles": "backend/**"
+    "builds": [
+        {
+            "src": "backend/server-vercel.js",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
         }
-    },
+    ],
     "routes": [
         {
             "src": "/api/(.*)",
