@@ -4,10 +4,15 @@
  * Vercel dùng serverless functions: không gọi app.listen()
  * Thay vào đó export `app` để Vercel xử lý.
  *
+ * QUAN TRỌNG: Tất cả route phải được import TĨNH (static import) ở đầu file.
+ * Vercel bundler (esbuild) chỉ trace và đóng gói được các file import tĩnh —
+ * import() động với đường dẫn tính toán lúc runtime (như safeImport cũ dùng
+ * pathToFileURL) sẽ bị bundler bỏ sót, khiến module load lỗi khi deploy.
+ *
  * Lưu ý về uploads:
  * - Vercel filesystem là read-only ở production
  * - Ảnh sản phẩm cần lưu trên Cloudinary / AWS S3 / Uploadthing
- * - File này có cloudinaryUpload() thay thế multer local storage
+ * - middleware/upload-cloudinary.js thay thế multer local storage
  */
 
 import express from "express";
@@ -15,13 +20,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
-import { fileURLToPath, pathToFileURL } from "url";
-import { dirname, join } from "path";
-import { existsSync } from "fs";
 
 dotenv.config();
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// ─── Static imports — bắt buộc để Vercel bundler include đủ file ────────────
+import paymentRouter from "./routes/payment.js";
+import authRouter from "./routes/auth.js";
+import productRouter from "./routes/products.js";
+import orderRouter from "./routes/orders.js";
+import adminRouter from "./routes/admin.js";
+import blogRouter from "./routes/blog.js";
+import warrantyRouter from "./routes/warranty.js";
+
 const app = express();
 
 // ─── CORS — cho phép Vercel frontend domain ───────────────────────────────────
@@ -71,38 +81,14 @@ app.use(async (_req, _res, next) => {
     next();
 });
 
-// ─── Safe import ──────────────────────────────────────────────────────────────
-async function safeImport(relPath) {
-    const abs = join(__dirname, relPath);
-    if (!existsSync(abs)) return null;
-    try {
-        const mod = await import(pathToFileURL(abs).href);
-        return mod.default;
-    } catch (err) {
-        console.error(`❌ ${relPath}:`, err.message);
-        return null;
-    }
-}
-
 // ─── Mount routes ─────────────────────────────────────────────────────────────
-const [paymentRouter, authRouter, productRouter, orderRouter, adminRouter, blogRouter, warrantyRouter] =
-    await Promise.all([
-        safeImport("./routes/payment.js"),
-        safeImport("./routes/auth.js"),
-        safeImport("./routes/products.js"),
-        safeImport("./routes/orders.js"),
-        safeImport("./routes/admin.js"),
-        safeImport("./routes/blog.js"),
-        safeImport("./routes/warranty.js"),
-    ]);
-
-if (paymentRouter) app.use("/api/payment", paymentRouter);
-if (authRouter) app.use("/api/auth", authRouter);
-if (productRouter) app.use("/api/products", productRouter);
-if (orderRouter) app.use("/api/orders", orderRouter);
-if (adminRouter) app.use("/api/admin", adminRouter);
-if (blogRouter) app.use("/api/blog", blogRouter);
-if (warrantyRouter) app.use("/api/warranty", warrantyRouter);
+app.use("/api/payment", paymentRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/blog", blogRouter);
+app.use("/api/warranty", warrantyRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => {
