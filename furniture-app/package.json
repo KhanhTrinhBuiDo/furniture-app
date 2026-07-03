@@ -1,0 +1,6 @@
+{
+    "name": "furniture-app-root",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module"
+}
