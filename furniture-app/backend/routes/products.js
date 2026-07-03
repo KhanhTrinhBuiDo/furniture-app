@@ -2,7 +2,7 @@ import express from "express";
 import Product from "../models/Product.js";
 import AuditLog from "../models/AuditLog.js";
 import { protect, requireAdmin, requireStaff, optionalAuth } from "../middleware/authMiddleware.js";
-import { uploadMultiple, handleUploadError, deleteFile } from "../middleware/upload.js";
+import { uploadMultiple, handleUploadError } from "../middleware/upload-cloudinary.js";
 import path from "path";
 
 const router = express.Router();

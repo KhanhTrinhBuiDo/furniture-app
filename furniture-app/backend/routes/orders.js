@@ -4,7 +4,6 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Voucher from "../models/Voucher.js";
 import { protect, requireStaff } from "../middleware/authMiddleware.js";
-import { createWarrantiesForOrder } from "./warranty.js";   // ← MỚI: tích hợp bảo hành
 
 const router = express.Router();
 
@@ -24,6 +23,7 @@ router.post("/", protect, async (req, res) => {
         if (!items?.length) return res.status(400).json({ message: "Giỏ hàng trống" });
         if (!shippingAddress) return res.status(400).json({ message: "Thiếu địa chỉ giao hàng" });
 
+        // Lookup sản phẩm trong DB (chỉ với ObjectId hợp lệ)
         const mongoIds = items.map(i => String(i.productId)).filter(isMongoId);
         const productMap = new Map();
         if (mongoIds.length > 0) {
@@ -84,11 +84,13 @@ router.post("/", protect, async (req, res) => {
             statusHistory: [{ status: "pending", note: "Đơn hàng mới tạo" }],
         });
 
+        // Trừ tồn kho
         const bulkOps = orderItems
             .filter(i => i.product)
             .map(i => ({ updateOne: { filter: { _id: i.product }, update: { $inc: { stock: -i.quantity, sold: i.quantity } } } }));
         if (bulkOps.length) await Product.bulkWrite(bulkOps);
 
+        // Tăng usedCount voucher
         if (voucherDoc) await Voucher.findByIdAndUpdate(voucherDoc._id, { $inc: { usedCount: 1 } });
 
         res.status(201).json({ success: true, order });
@@ -109,10 +111,11 @@ router.get("/my", protect, async (req, res) => {
             Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
             Order.countDocuments(filter),
         ]);
-        res.json({ success: true, orders, pagination: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / Number(limit)) } });
+        res.json({ success: true, orders, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
+// ─── GET /api/orders/my/:orderCode ───────────────────────────────────────────
 router.get("/my/:orderCode", protect, async (req, res) => {
     try {
         const order = await Order.findOne({ orderCode: req.params.orderCode, user: req.user._id });
@@ -121,11 +124,12 @@ router.get("/my/:orderCode", protect, async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
+// ─── POST /api/orders/my/:orderCode/cancel ────────────────────────────────────
 router.post("/my/:orderCode/cancel", protect, async (req, res) => {
     try {
         const order = await Order.findOne({ orderCode: req.params.orderCode, user: req.user._id });
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-        if (!order.canCancel()) return res.status(400).json({ message: "Không thể huỷ đơn hàng ở trạng thái này" });
+        if (!order.canCancel()) return res.status(400).json({ message: "Không thể huỷ đơn ở trạng thái này" });
 
         order.status = "cancelled";
         order.cancelReason = req.body.reason || "Khách hàng huỷ";
@@ -142,6 +146,7 @@ router.post("/my/:orderCode/cancel", protect, async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
+// ─── POST /api/orders/validate-voucher ───────────────────────────────────────
 router.post("/validate-voucher", protect, async (req, res) => {
     try {
         const { code, orderTotal } = req.body;
@@ -151,7 +156,7 @@ router.post("/validate-voucher", protect, async (req, res) => {
         const validity = voucher.isValid(Number(orderTotal));
         if (!validity.ok) return res.status(400).json({ message: validity.msg });
         const discount = voucher.calcDiscount(Number(orderTotal));
-        res.json({ success: true, discount, voucherCode: voucher.code, description: voucher.description, type: voucher.type, value: voucher.value });
+        res.json({ success: true, discount, voucherCode: voucher.code, description: voucher.description });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
@@ -170,7 +175,7 @@ router.get("/", protect, requireStaff, async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
-// ─── Admin: PUT /api/orders/:id/status — TÍCH HỢP TẠO WARRANTY ───────────────
+// ─── Admin: PUT /api/orders/:id/status + tạo Warranty khi completed ──────────
 router.put("/:id/status", protect, requireStaff, async (req, res) => {
     try {
         const { status, note } = req.body;
@@ -191,21 +196,19 @@ router.put("/:id/status", protect, requireStaff, async (req, res) => {
         order.statusHistory.push({ status, note: note || "", updatedBy: req.user._id });
 
         if (status === "completed") {
-            if (order.paymentMethod === "cod") {
-                order.paymentStatus = "paid";
-                order.paidAt = new Date();
-            }
-            // Đảm bảo có paidAt trước khi tạo warranty (mốc tính bảo hành)
+            if (order.paymentMethod === "cod") order.paymentStatus = "paid";
             if (!order.paidAt) order.paidAt = new Date();
         }
-
         await order.save();
 
-        // ★★★ TẠO WARRANTY TỰ ĐỘNG khi đơn chuyển sang "completed" ★★★
+        // Tạo warranty tự động khi đơn hoàn tất
         if (status === "completed") {
-            createWarrantiesForOrder(order._id).catch(err =>
-                console.error("Warranty creation failed (non-blocking):", err.message)
-            );
+            try {
+                const { createWarrantiesForOrder } = await import("./warranty.js");
+                createWarrantiesForOrder(order._id).catch(e => console.error("Warranty:", e.message));
+            } catch (e) {
+                console.warn("Warranty module not available:", e.message);
+            }
         }
 
         res.json({ success: true, order });
@@ -214,47 +217,40 @@ router.put("/:id/status", protect, requireStaff, async (req, res) => {
     }
 });
 
-// ─── Payment sync (VNPay callback) ───────────────────────────────────────────
+// ─── Payment sync ─────────────────────────────────────────────────────────────
 router.put("/payment-sync", async (req, res) => {
     try {
         const { orderCode, transactionNo, payDate } = req.body;
         const order = await Order.findOne({ orderCode });
         if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
-
         order.paymentStatus = "paid";
         order.transactionNo = transactionNo || "";
         order.paidAt = payDate ? new Date(payDate) : new Date();
-
         if (order.status === "pending") {
             order.status = "confirmed";
             order.statusHistory.push({ status: "confirmed", note: "Thanh toán VNPay thành công" });
         }
         await order.save();
-        res.json({ success: true, message: "Đồng bộ thanh toán thành công" });
-    } catch (err) {
-        res.status(500).json({ message: "Lỗi máy chủ" });
-    }
+        res.json({ success: true, message: "Đồng bộ thành công" });
+    } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
-// ─── Admin: POST /api/orders/:id/complete-now — Test nhanh tạo warranty ──────
-// (Tiện ích dev: chuyển thẳng sang completed để test warranty mà không cần qua đủ flow)
+// ─── Dev: POST /api/orders/:id/complete-now ───────────────────────────────────
 router.post("/:id/complete-now", protect, requireStaff, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-
         order.status = "completed";
         order.paymentStatus = "paid";
         order.paidAt = order.paidAt || new Date();
-        order.statusHistory.push({ status: "completed", note: "[DEV] Hoàn tất nhanh để test", updatedBy: req.user._id });
+        order.statusHistory.push({ status: "completed", note: "[DEV] Hoàn tất nhanh", updatedBy: req.user._id });
         await order.save();
-
-        await createWarrantiesForOrder(order._id);
-
-        res.json({ success: true, message: "Đã hoàn tất đơn + tạo warranty", order });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+        try {
+            const { createWarrantiesForOrder } = await import("./warranty.js");
+            await createWarrantiesForOrder(order._id);
+        } catch (e) { console.warn("Warranty:", e.message); }
+        res.json({ success: true, message: "Đã hoàn tất + tạo warranty", order });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 export default router;

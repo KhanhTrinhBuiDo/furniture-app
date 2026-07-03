@@ -28,15 +28,18 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBlog from "./pages/admin/AdminBlog";      // ← FIX #3
 
 import { getMe } from "./services/authService";
 
+// ─── Admin page map — thêm admin-blog ────────────────────────────────────────
 const ADMIN_PAGES = {
   "admin-dashboard": AdminDashboard,
   "admin-orders": AdminOrders,
   "admin-products": AdminProducts,
   "admin-vouchers": AdminVouchers,
   "admin-users": AdminUsers,
+  "admin-blog": AdminBlog,           // ← FIX #3
 };
 
 // ─── Auth Init ────────────────────────────────────────────────────────────────
@@ -80,11 +83,18 @@ function Router() {
   // Admin pages
   if (page.startsWith("admin-")) {
     const AdminPage = ADMIN_PAGES[page];
-    if (!AdminPage) return (
-      <div style={{ padding: 40, textAlign: "center" }}>
-        <p style={{ color: "#C0392B" }}>Trang admin không tồn tại: {page}</p>
-      </div>
-    );
+    if (!AdminPage) {
+      return (
+        <div style={{ padding: 40, textAlign: "center" }}>
+          <p style={{ color: "#C0392B", fontSize: 15 }}>
+            Trang admin không tồn tại: <code>{page}</code>
+          </p>
+          <p style={{ color: "#999", fontSize: 13, marginTop: 8 }}>
+            Trang này chưa được thêm vào ADMIN_PAGES trong App.jsx
+          </p>
+        </div>
+      );
+    }
     return (
       <ProtectedRoute redirectTo="login" requireRole="admin">
         <AdminLayout activePage={page}>

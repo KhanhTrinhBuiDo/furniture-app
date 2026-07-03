@@ -89,3 +89,14 @@ data/
 ############################
 
 *.local
+
+# Tạo file .gitignore ở thư mục gốc
+@"
+node_modules/
+.env
+.env.local
+.env.production
+dist/
+uploads/
+*.log
+"@ | Out-File -FilePath "E:\furniture-app\furniture-app\.gitignore" -Encoding utf8

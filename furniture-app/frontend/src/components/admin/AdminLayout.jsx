@@ -1,14 +1,12 @@
 import { useStore } from "../../../../store/store";
 
-const C = { dark: "#4A2C1A", wood: "#8B5E3C", cream: "#FAF7F2" };
-
 const NAV_ITEMS = [
     { key: "admin-dashboard", icon: "📊", label: "Tổng quan" },
     { key: "admin-orders", icon: "📦", label: "Đơn hàng" },
-    { key: "admin-products", icon: "🛋", label: "Sản phẩm" },  // ← FR-08
+    { key: "admin-products", icon: "🛋", label: "Sản phẩm" },
     { key: "admin-vouchers", icon: "🎟", label: "Voucher" },
     { key: "admin-users", icon: "👥", label: "Người dùng" },
-    { key: "admin-blog", icon: "📝", label: "Blog" },
+    { key: "admin-blog", icon: "📝", label: "Blog" },  // ← FIX #3
 ];
 
 export default function AdminLayout({ children, activePage }) {
@@ -18,20 +16,35 @@ export default function AdminLayout({ children, activePage }) {
         <div style={{ display: "flex", minHeight: "100vh" }}>
 
             {/* Sidebar */}
-            <aside style={{ width: 220, background: C.dark, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", overflowY: "auto" }}>
-
+            <aside style={{
+                width: 220,
+                background: "#1A1A2E",
+                display: "flex",
+                flexDirection: "column",
+                flexShrink: 0,
+                position: "sticky",
+                top: 0,
+                height: "100vh",
+                overflowY: "auto",
+            }}>
                 {/* Logo */}
                 <div style={{ padding: "24px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                     <button onClick={() => navigate("home")}
-                        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-                        <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-                            <rect width="28" height="28" rx="4" fill="#8B5E3C" />
-                            <path d="M7 20V10l7-4 7 4v10" stroke="#FAF7F2" strokeWidth="1.5" strokeLinejoin="round" />
-                            <rect x="11" y="14" width="6" height="6" rx="1" fill="#FAF7F2" />
+                        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+                        <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+                            <rect width="40" height="40" rx="6" fill="#B8860B" />
+                            <path d="M8 30V16l12-8 12 8v14" stroke="#1A1A2E" strokeWidth="1.8" strokeLinejoin="round" />
+                            <rect x="15" y="20" width="10" height="10" rx="1.5" fill="#1A1A2E" />
                         </svg>
-                        <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1rem", color: "#FAF7F2", fontWeight: 700 }}>Amore Home.</span>
+                        <div>
+                            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", color: "#FAF7F2", fontWeight: 700, margin: 0, lineHeight: 1.1 }}>
+                                Amore Home
+                            </p>
+                            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", margin: 0, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                                Admin Panel
+                            </p>
+                        </div>
                     </button>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "8px 0 0", letterSpacing: "0.1em", textTransform: "uppercase" }}>Admin Panel</p>
                 </div>
 
                 {/* Nav */}
@@ -42,9 +55,9 @@ export default function AdminLayout({ children, activePage }) {
                             <button key={item.key} onClick={() => navigate(item.key)}
                                 style={{
                                     width: "100%", textAlign: "left",
-                                    background: active ? "rgba(255,255,255,0.1)" : "none",
+                                    background: active ? "rgba(184,134,11,0.15)" : "none",
                                     border: "none",
-                                    borderLeft: `3px solid ${active ? C.wood : "transparent"}`,
+                                    borderLeft: `3px solid ${active ? "#B8860B" : "transparent"}`,
                                     padding: "11px 20px",
                                     display: "flex", alignItems: "center", gap: 12,
                                     cursor: "pointer",
@@ -55,19 +68,33 @@ export default function AdminLayout({ children, activePage }) {
                                 }}
                                 onMouseEnter={e => !active && (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
                                 onMouseLeave={e => !active && (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}>
-                                <span style={{ fontSize: 16 }}>{item.icon}</span>
+                                <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
                                 {item.label}
                             </button>
                         );
                     })}
                 </nav>
 
-                {/* User + back btn */}
+                {/* User + back */}
                 <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 2px", fontWeight: 600 }}>{currentUser?.fullName || "Admin"}</p>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 12px" }}>{currentUser?.email || ""}</p>
+                    {currentUser && (
+                        <>
+                            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: "0 0 2px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {currentUser.fullName}
+                            </p>
+                            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {currentUser.email}
+                            </p>
+                        </>
+                    )}
                     <button onClick={() => navigate("home")}
-                        style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "7px 12px", fontSize: 11, color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "'Poppins',sans-serif", width: "100%", transition: "all 0.2s" }}
+                        style={{
+                            background: "none", border: "1px solid rgba(255,255,255,0.15)",
+                            borderRadius: 6, padding: "7px 12px", fontSize: 11,
+                            color: "rgba(255,255,255,0.5)", cursor: "pointer",
+                            fontFamily: "'Poppins',sans-serif", width: "100%",
+                            transition: "all 0.2s",
+                        }}
                         onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
                         onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}>
                         ← Về trang chủ
@@ -75,7 +102,7 @@ export default function AdminLayout({ children, activePage }) {
                 </div>
             </aside>
 
-            {/* Main */}
+            {/* Main content */}
             <main style={{ flex: 1, overflowX: "auto", background: "#FAF7F2" }}>
                 {children}
             </main>
