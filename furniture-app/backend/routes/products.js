@@ -2,17 +2,16 @@ import express from "express";
 import Product from "../models/Product.js";
 import AuditLog from "../models/AuditLog.js";
 import { protect, requireAdmin, requireStaff, optionalAuth } from "../middleware/authMiddleware.js";
-import { uploadMultiple, handleUploadError } from "../middleware/upload-cloudinary.js";
-import path from "path";
+import { uploadMultiple, handleUploadError, deleteCloudinaryImage } from "../middleware/upload-cloudinary.js";
 
 const router = express.Router();
 
-// ─── Helper: URL ảnh từ filename ──────────────────────────────────────────────
-const imgUrl = (req, filename) => {
-    if (!filename) return "";
-    if (filename.startsWith("http")) return filename;
-    return `${req.protocol}://${req.get("host")}/uploads/products/${filename}`;
-};
+// ─── Helper: trích public_id từ URL Cloudinary để xoá ảnh khi cần ───────────
+function extractCloudinaryPublicId(url) {
+    if (!url || typeof url !== "string") return null;
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/);
+    return match ? match[1] : null;
+}
 
 // ─── GET /api/products ────────────────────────────────────────────────────────
 // Public — FR-06, FR-07
@@ -158,8 +157,9 @@ router.post("/",
                 try { body.tags = JSON.parse(body.tags); } catch { body.tags = body.tags.split(",").map(t => t.trim()); }
             }
 
-            // Xử lý ảnh upload
-            const uploadedImages = req.files?.map(f => `/uploads/products/${f.filename}`) || [];
+            // Xử lý ảnh upload — Cloudinary trả về URL đầy đủ trong f.path
+            // (f.filename chỉ là public_id nội bộ, KHÔNG dùng để build local path)
+            const uploadedImages = req.files?.map(f => f.path) || [];
             // Nếu có URL ảnh từ body (link ngoài) thì ghép vào
             const bodyImages = body.images
                 ? (Array.isArray(body.images) ? body.images : [body.images]).filter(Boolean)
@@ -222,20 +222,24 @@ router.put("/:id",
                 try { body.tags = JSON.parse(body.tags); } catch { body.tags = body.tags.split(",").map(t => t.trim()); }
             }
 
-            // Ảnh mới upload
-            const newImages = req.files?.map(f => `/uploads/products/${f.filename}`) || [];
+            // Ảnh mới upload — Cloudinary trả về URL đầy đủ trong f.path
+            const newImages = req.files?.map(f => f.path) || [];
 
             // Ảnh giữ lại (gửi từ frontend)
             const keepImages = body.images
                 ? (Array.isArray(body.images) ? body.images : [body.images]).filter(Boolean)
                 : product.images;
 
-            // Ảnh bị xoá — xoá file vật lý
-            const removedImages = product.images.filter(img => !keepImages.includes(img) && !img.startsWith("http"));
-            removedImages.forEach(img => {
-                const filename = path.basename(img);
-                deleteFile(filename);
-            });
+            // Ảnh bị xoá — xoá trên Cloudinary (best-effort, không chặn flow chính nếu lỗi)
+            const removedImages = product.images.filter(img => !keepImages.includes(img));
+            for (const img of removedImages) {
+                const publicId = extractCloudinaryPublicId(img);
+                if (publicId) {
+                    deleteCloudinaryImage(publicId).catch(err =>
+                        console.warn("Không thể xoá ảnh Cloudinary:", publicId, err.message)
+                    );
+                }
+            }
 
             body.images = [...keepImages, ...newImages];
 
@@ -346,8 +350,5 @@ router.patch("/:id/stock", protect, requireStaff, async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-
-// ─── Serve uploaded images ────────────────────────────────────────────────────
-// (Thêm vào server.js: app.use("/uploads", express.static(join(__dirname, "../uploads"))))
 
 export default router;
