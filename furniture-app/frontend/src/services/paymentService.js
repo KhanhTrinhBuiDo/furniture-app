@@ -42,3 +42,13 @@ export function formatCurrency(amount) {
     currency: "VND",
   }).format(amount);
 }
+
+// ─── GENERATE ORDER CODE ──────────────────────────────────────────────────────
+// Giữ lại để tương thích ngược — orders.js phía backend đã TỰ SINH orderCode
+// nếu không được truyền lên, nên hàm này không còn bắt buộc phải dùng, nhưng
+// vẫn export để không phá vỡ các chỗ khác (VD: CartPage.jsx) đang import nó.
+export function generateOrderCode() {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+  return `FNR${timestamp}${random}`;
+}

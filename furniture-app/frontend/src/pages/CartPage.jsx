@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useStore } from "../../../store/store";
 import { validateVoucher, createOrder } from "../services/orderService";
-import { createPayment, generateOrderCode } from "../services/paymentService";
+import { createPayment } from "../services/paymentService";
 import FadeUp from "../components/FadeUp";
 
 const C = {
@@ -86,32 +86,24 @@ export default function CartPage() {
 
     setOrderLoading(true);
     try {
-      const orderCode = generateOrderCode();
-
-      // Tạo đơn hàng — chỉ gửi sản phẩm có MongoDB _id
-      if (isLoggedIn) {
-        await createOrder({
-          orderCode,
-          items: dbItems.map(i => ({
-            productId: i._id,           // MongoDB ObjectId
-            name: i.name,
-            img: i.img || "",
-            price: i.salePrice || i.price,
-            quantity: i.quantity,
-          })),
-          shippingAddress: formData,
-          voucherCode: voucherData?.voucherCode || "",
-          paymentMethod: "vnpay",
-        });
-      }
-
-      // Tạo VNPay URL
-      const payment = await createPayment({
-        amount: total,
-        orderCode,
-        orderDescription: `Đơn hàng Amore Home - ${dbItems.length} sản phẩm`,
-        customerInfo: { ...formData, items: dbItems, total, discount, shipping: shippingFee },
+      // ─── 1. Tạo đơn hàng THẬT trong MongoDB ──────────────────────────
+      // Trang này luôn được bọc bởi ProtectedRoute (App.jsx) nên isLoggedIn
+      // luôn đúng khi tới được đây — không cần nhánh guest checkout.
+      const { order } = await createOrder({
+        items: dbItems.map(i => ({
+          productId: i._id,           // MongoDB ObjectId
+          name: i.name,
+          img: i.img || "",
+          price: i.salePrice || i.price,
+          quantity: i.quantity,
+        })),
+        shippingAddress: formData,
+        voucherCode: voucherData?.voucherCode || "",
+        paymentMethod: "vnpay",
       });
+
+      // ─── 2. Khởi tạo thanh toán cho đúng đơn hàng vừa tạo ────────────
+      const payment = await createPayment({ orderId: order._id });
 
       if (payment.success && payment.paymentUrl) {
         window.location.href = payment.paymentUrl;
