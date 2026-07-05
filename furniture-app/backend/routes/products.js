@@ -1,7 +1,7 @@
 import express from "express";
 import Product from "../models/Product.js";
 import AuditLog from "../models/AuditLog.js";
-import { protect, requireAdmin, requireStaff, optionalAuth } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin, optionalAuth } from "../middleware/authMiddleware.js";
 import { uploadMultiple, handleUploadError, deleteCloudinaryImage } from "../middleware/upload-cloudinary.js";
 
 const router = express.Router();
@@ -121,7 +121,7 @@ router.get("/:id", async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── Admin: GET /api/products/admin/all — bao gồm sản phẩm ẩn ───────────────
-router.get("/admin/all", protect, requireStaff, async (req, res) => {
+router.get("/admin/all", protect, requireAdmin, async (req, res) => {
     try {
         const { q, category, isActive, page = 1, limit = 20 } = req.query;
         const filter = {};
@@ -320,7 +320,7 @@ router.post("/:id/restore", protect, requireAdmin, async (req, res) => {
 });
 
 // ─── Admin: PATCH /api/products/:id/stock — Cập nhật tồn kho ─────────────────
-router.patch("/:id/stock", protect, requireStaff, async (req, res) => {
+router.patch("/:id/stock", protect, requireAdmin, async (req, res) => {
     try {
         const { stock, note } = req.body;
         if (stock === undefined || Number(stock) < 0) {

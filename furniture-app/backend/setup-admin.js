@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true, select: false },
     phone: { type: String, default: "" },
-    role: { type: String, enum: ["user", "admin", "staff"], default: "user" },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
     isActive: { type: Boolean, default: true },
     authProvider: { type: String, default: "local" },
     avatar: { type: String, default: "" },

@@ -5,7 +5,6 @@ const API = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admi
 
 const ROLE_CFG = {
     user: { label: "User", color: "#4285F4", bg: "#EBF2FE" },
-    staff: { label: "Staff", color: C.wood, bg: "#F5EDE3" },
     admin: { label: "Admin", color: C.dark, bg: C.beige },
 };
 
@@ -71,7 +70,7 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Role filter */}
-                {["", "user", "staff", "admin"].map(r => (
+                {["", "user", "admin"].map(r => (
                     <button key={r} onClick={() => setRoleTab(r)}
                         style={{ padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif", transition: "all 0.2s", background: roleTab === r ? C.dark : "#fff", color: roleTab === r ? "#fff" : "#888", border: `1px solid ${roleTab === r ? C.dark : C.sand}` }}>
                         {r === "" ? "Tất cả" : ROLE_CFG[r]?.label || r}
@@ -131,7 +130,6 @@ export default function AdminUsers() {
                                             <select value={u.role} onChange={e => update(u._id, { role: e.target.value })}
                                                 style={{ fontSize: 11, padding: "4px 8px", borderRadius: 12, border: "none", cursor: "pointer", fontWeight: 600, background: rc.bg, color: rc.color, fontFamily: "'Poppins', sans-serif", outline: "none" }}>
                                                 <option value="user">User</option>
-                                                <option value="staff">Staff</option>
                                                 <option value="admin">Admin</option>
                                             </select>
                                         </td>

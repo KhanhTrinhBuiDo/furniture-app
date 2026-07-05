@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { createPayment, generateOrderCode } from "../services/paymentService";
+import { useState, useMemo } from "react";
+import { createOrder, validateVoucher } from "../services/orderService";
+import { createPayment } from "../services/paymentService";
 
 const colors = {
   cream: "#FAF7F2",
@@ -11,7 +12,16 @@ const colors = {
   success: "#6B7C5C",
 };
 
-export default function PaymentModal({ isOpen, onClose, cartItems, total, discount, shipping }) {
+const fmt = (n) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
+
+// Cùng ngưỡng miễn phí vận chuyển như backend (orders.js) — chỉ để hiển thị
+// tạm trước khi tạo đơn; giá trị cuối cùng luôn do backend tính lại và
+// quyết định, đây không phải nguồn xác thực.
+const FREE_SHIP_THRESHOLD = 5_000_000;
+const SHIPPING_FEE = 50_000;
+
+export default function PaymentModal({ isOpen, onClose, cartItems }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -25,19 +35,56 @@ export default function PaymentModal({ isOpen, onClose, cartItems, total, discou
   });
   const [errors, setErrors] = useState({});
 
+  // ─── Voucher ────────────────────────────────────────────────────────────
+  const [voucherInput, setVoucherInput] = useState("");
+  const [voucherApplied, setVoucherApplied] = useState(null); // { code, discount, description }
+  const [voucherError, setVoucherError] = useState("");
+  const [checkingVoucher, setCheckingVoucher] = useState(false);
+
+  const subtotal = useMemo(
+    () => cartItems.reduce((s, i) => s + (i.salePrice || i.price) * i.quantity, 0),
+    [cartItems]
+  );
+  const shipping = subtotal >= FREE_SHIP_THRESHOLD ? 0 : SHIPPING_FEE;
+  const discount = voucherApplied?.discount || 0;
+  const total = Math.max(0, subtotal - discount + shipping);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
       }));
     }
+  };
+
+  const handleApplyVoucher = async () => {
+    if (!voucherInput.trim()) return;
+    setCheckingVoucher(true);
+    setVoucherError("");
+    try {
+      const result = await validateVoucher(voucherInput.trim(), subtotal);
+      setVoucherApplied({
+        code: result.voucherCode,
+        discount: result.discount,
+        description: result.description,
+      });
+    } catch (err) {
+      setVoucherApplied(null);
+      setVoucherError(err.message || "Mã voucher không hợp lệ");
+    }
+    setCheckingVoucher(false);
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherApplied(null);
+    setVoucherInput("");
+    setVoucherError("");
   };
 
   const validateForm = () => {
@@ -69,30 +116,36 @@ export default function PaymentModal({ isOpen, onClose, cartItems, total, discou
 
     try {
       setLoading(true);
-      const orderCode = generateOrderCode();
 
-      const paymentResult = await createPayment({
-        amount: total,
-        orderCode,
-        orderDescription: `Đơn hàng nội thất - ${cartItems.length} sản phẩm`,
-        customerInfo: {
+      // ─── 1. Tạo đơn hàng THẬT trong MongoDB ──────────────────────────
+      const orderPayload = {
+        items: cartItems.map((item) => ({
+          productId: item._id || item.id,
+          name: item.name,
+          img: item.img,
+          price: item.salePrice || item.price,
+          quantity: item.quantity,
+        })),
+        shippingAddress: {
           fullName: formData.fullName,
-          email: formData.email,
           phone: formData.phone,
+          email: formData.email,
           address: formData.address,
-          city: formData.city,
-          district: formData.district,
           ward: formData.ward,
+          district: formData.district,
+          city: formData.city,
           notes: formData.notes,
-          items: cartItems,
-          total,
-          discount,
-          shipping,
         },
-      });
+        paymentMethod: "vnpay",
+        ...(voucherApplied ? { voucherCode: voucherApplied.code } : {}),
+      };
+
+      const { order } = await createOrder(orderPayload);
+
+      // ─── 2. Khởi tạo thanh toán cho đúng đơn hàng vừa tạo ────────────
+      const paymentResult = await createPayment({ orderId: order._id });
 
       if (paymentResult.success && paymentResult.paymentUrl) {
-        // Redirect to VNPay payment page
         window.location.href = paymentResult.paymentUrl;
       } else {
         alert("Không thể tạo thanh toán. Vui lòng thử lại.");
@@ -100,7 +153,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems, total, discou
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert("Lỗi thanh toán. Vui lòng thử lại.");
+      alert(error.message || "Lỗi thanh toán. Vui lòng thử lại.");
       setLoading(false);
     }
   };
@@ -263,47 +316,73 @@ export default function PaymentModal({ isOpen, onClose, cartItems, total, discou
             />
           </div>
 
+          {/* ─── Voucher ─────────────────────────────────────────────── */}
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Mã giảm giá</label>
+            {voucherApplied ? (
+              <div style={styles.voucherApplied}>
+                <div>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: colors.success }}>
+                    ✓ {voucherApplied.code}
+                  </p>
+                  {voucherApplied.description && (
+                    <p style={{ margin: "2px 0 0", fontSize: 11, color: "#888" }}>
+                      {voucherApplied.description}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveVoucher}
+                  disabled={loading}
+                  style={styles.voucherRemoveBtn}
+                >
+                  Gỡ bỏ
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={voucherInput}
+                  onChange={(e) => { setVoucherInput(e.target.value.toUpperCase()); setVoucherError(""); }}
+                  placeholder="Nhập mã voucher"
+                  style={{ ...styles.input, flex: 1, borderColor: voucherError ? colors.error : colors.sand }}
+                  disabled={loading || checkingVoucher}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApplyVoucher(); } }}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyVoucher}
+                  disabled={loading || checkingVoucher || !voucherInput.trim()}
+                  style={styles.voucherApplyBtn}
+                >
+                  {checkingVoucher ? "..." : "Áp dụng"}
+                </button>
+              </div>
+            )}
+            {voucherError && <p style={styles.error}>{voucherError}</p>}
+          </div>
+
           {/* Order Summary */}
           <div style={styles.summary}>
             <div style={styles.summaryRow}>
               <span>Tạm tính ({cartItems.length} sản phẩm)</span>
-              <span>
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(total - discount + shipping)}
-              </span>
+              <span>{fmt(subtotal)}</span>
             </div>
             {discount > 0 && (
               <div style={styles.summaryRow}>
                 <span>Giảm giá</span>
-                <span style={{ color: colors.success }}>
-                  -{new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(discount)}
-                </span>
+                <span style={{ color: colors.success }}>-{fmt(discount)}</span>
               </div>
             )}
             <div style={styles.summaryRow}>
               <span>Phí vận chuyển</span>
-              <span>
-                {shipping === 0
-                  ? "Miễn phí"
-                  : new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(shipping)}
-              </span>
+              <span>{shipping === 0 ? "Miễn phí" : fmt(shipping)}</span>
             </div>
             <div style={styles.summaryTotal}>
               <span>Tổng cộng</span>
-              <span>
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(total)}
-              </span>
+              <span>{fmt(total)}</span>
             </div>
           </div>
 
@@ -397,6 +476,7 @@ const styles = {
   formGroup: {
     display: "flex",
     flexDirection: "column",
+    marginBottom: 20,
   },
   label: {
     fontSize: 13,
@@ -413,6 +493,7 @@ const styles = {
     fontSize: 14,
     fontFamily: "'Poppins', sans-serif",
     transition: "border-color 0.2s",
+    boxSizing: "border-box",
   },
   textarea: {
     padding: "10px 12px",
@@ -428,6 +509,36 @@ const styles = {
     fontSize: 12,
     marginTop: 4,
     margin: "4px 0 0 0",
+  },
+  voucherApplied: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#EEF4EA",
+    border: `1px solid ${colors.success}`,
+    borderRadius: 6,
+    padding: "10px 14px",
+  },
+  voucherRemoveBtn: {
+    background: "none",
+    border: "none",
+    color: colors.error,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "'Poppins', sans-serif",
+  },
+  voucherApplyBtn: {
+    padding: "0 18px",
+    backgroundColor: colors.dark,
+    color: "#fff",
+    border: "none",
+    borderRadius: 6,
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "'Poppins', sans-serif",
+    whiteSpace: "nowrap",
   },
   summary: {
     backgroundColor: colors.beige,

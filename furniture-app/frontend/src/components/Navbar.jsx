@@ -169,9 +169,12 @@ export default function Navbar() {
                       )}
                     </div>
                     {[
+                      { icon: "👤", label: "Hồ sơ cá nhân", action: () => navigate("profile") },
                       { icon: "📦", label: "Đơn hàng", action: () => navigate("orders") },
                       { icon: "🛡", label: "Bảo hành", action: () => navigate("warranty") },
                       { icon: "❤️", label: "Yêu thích", action: () => navigate("home") },
+                      { icon: "🧼", label: "Vệ sinh miễn phí", action: () => navigate("cleaning-service") },
+                      { icon: "♻️", label: "Thu cũ đổi mới", action: () => navigate("trade-in") },
                       ...(isAdmin ? [{ icon: "⚙️", label: "Admin Panel", action: () => navigate("admin-dashboard") }] : []),
                     ].map(item => (
                       <button key={item.label} onClick={() => { item.action(); setProfileOpen(false); }}
@@ -275,8 +278,11 @@ export default function Navbar() {
             ...NAV.map(item => ({ ...item, isMain: true })),
             { label: "Giỏ hàng", action: () => navigate("cart"), icon: "🛒", badge: cartCount },
             ...(isLoggedIn ? [
+              { label: "Hồ sơ cá nhân", action: () => navigate("profile"), icon: "👤" },
               { label: "Đơn hàng", action: () => navigate("orders"), icon: "📦" },
               { label: "Bảo hành", action: () => navigate("warranty"), icon: "🛡" },
+              { label: "Vệ sinh miễn phí", action: () => navigate("cleaning-service"), icon: "🧼" },
+              { label: "Thu cũ đổi mới", action: () => navigate("trade-in"), icon: "♻️" },
             ] : [
               { label: "Đăng nhập", action: () => navigate("login"), icon: "👤" },
               { label: "Đăng ký", action: () => navigate("register"), icon: "✍️" },

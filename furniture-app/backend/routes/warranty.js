@@ -2,7 +2,7 @@ import express from "express";
 import Warranty from "../models/Warranty.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import { protect, requireStaff } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -61,7 +61,6 @@ router.get("/my", protect, async (req, res) => {
             .populate("product", "name img category")
             .lean();
 
-        // Cập nhật status dựa trên thời gian hiện tại
         const now = new Date();
         const updated = warranties.map(w => {
             const daysLeft = Math.ceil((new Date(w.warrantyEndAt) - now) / (1000 * 60 * 60 * 24));
@@ -107,7 +106,7 @@ router.get("/my/:id", protect, async (req, res) => {
 });
 
 // ─── Admin: GET /api/warranty — Tất cả warranties ────────────────────────────
-router.get("/", protect, requireStaff, async (req, res) => {
+router.get("/", protect, requireAdmin, async (req, res) => {
     try {
         const { status, page = 1, limit = 20 } = req.query;
         const filter = {};
@@ -130,18 +129,16 @@ router.get("/", protect, requireStaff, async (req, res) => {
 });
 
 // ─── Admin: POST /api/warranty/send-reminders — Gửi nhắc nhở thủ công ────────
-router.post("/send-reminders", protect, requireStaff, async (req, res) => {
+router.post("/send-reminders", protect, requireAdmin, async (req, res) => {
     try {
         const now = new Date();
         const sent = [];
 
-        // Tìm tất cả events đến hạn chưa gửi
         const warranties = await Warranty.find({ status: { $ne: "expired" } });
 
         for (const w of warranties) {
             for (const ev of w.events) {
                 if (!ev.isSent && new Date(ev.scheduledAt) <= now) {
-                    // TODO: Gửi email (emailUtils.sendWarrantyReminder)
                     console.log(`📧 [WARRANTY] ${ev.title} → user ${w.user}`);
                     ev.isSent = true;
                     ev.sentAt = now;

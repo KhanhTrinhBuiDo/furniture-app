@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Voucher from "../models/Voucher.js";
-import { protect, requireStaff } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -161,7 +161,7 @@ router.post("/validate-voucher", protect, async (req, res) => {
 });
 
 // ─── Admin: GET /api/orders ───────────────────────────────────────────────────
-router.get("/", protect, requireStaff, async (req, res) => {
+router.get("/", protect, requireAdmin, async (req, res) => {
     try {
         const { status, page = 1, limit = 20 } = req.query;
         const filter = {};
@@ -176,7 +176,7 @@ router.get("/", protect, requireStaff, async (req, res) => {
 });
 
 // ─── Admin: PUT /api/orders/:id/status + tạo Warranty khi completed ──────────
-router.put("/:id/status", protect, requireStaff, async (req, res) => {
+router.put("/:id/status", protect, requireAdmin, async (req, res) => {
     try {
         const { status, note } = req.body;
         const validFlow = {
@@ -217,8 +217,12 @@ router.put("/:id/status", protect, requireStaff, async (req, res) => {
     }
 });
 
-// ─── Payment sync ─────────────────────────────────────────────────────────────
-router.put("/payment-sync", async (req, res) => {
+// ─── Admin: PUT /api/orders/payment-sync — Công cụ đối soát thủ công ─────────
+// CHỈ dành cho Admin/Staff dùng khi cần đối soát tay (VD: VNPay báo lỗi
+// webhook, cần đồng bộ tay). Luồng chính KHÔNG dùng endpoint này nữa —
+// payment.js đã cập nhật paymentStatus trực tiếp trên Order khi thanh toán
+// (demo) hoặc qua webhook đã xác thực chữ ký (VNPay thật).
+router.put("/payment-sync", protect, requireAdmin, async (req, res) => {
     try {
         const { orderCode, transactionNo, payDate } = req.body;
         const order = await Order.findOne({ orderCode });
@@ -228,7 +232,7 @@ router.put("/payment-sync", async (req, res) => {
         order.paidAt = payDate ? new Date(payDate) : new Date();
         if (order.status === "pending") {
             order.status = "confirmed";
-            order.statusHistory.push({ status: "confirmed", note: "Thanh toán VNPay thành công" });
+            order.statusHistory.push({ status: "confirmed", note: "[Admin] Đối soát thanh toán thủ công", updatedBy: req.user._id });
         }
         await order.save();
         res.json({ success: true, message: "Đồng bộ thành công" });
@@ -236,7 +240,7 @@ router.put("/payment-sync", async (req, res) => {
 });
 
 // ─── Dev: POST /api/orders/:id/complete-now ───────────────────────────────────
-router.post("/:id/complete-now", protect, requireStaff, async (req, res) => {
+router.post("/:id/complete-now", protect, requireAdmin, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });

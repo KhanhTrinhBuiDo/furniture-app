@@ -4,12 +4,13 @@
 // Default falls back to localhost so existing local setup still works.
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/payment`;
 
-// ─── CREATE PAYMENT ───────────────────────────────────────────────────────────
-export async function createPayment({ amount, orderCode, orderDescription, customerInfo }) {
+// ─── CREATE PAYMENT (cho đơn hàng THẬT đã tạo qua orderService.createOrder) ───
+export async function createPayment({ orderId }) {
   const response = await fetch(`${API_URL}/create-payment`, {
     method: "POST",
+    credentials: "include", // bắt buộc — route yêu cầu đăng nhập để xác thực chủ đơn hàng
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount, orderCode, orderDescription, customerInfo }),
+    body: JSON.stringify({ orderId }),
   });
 
   if (!response.ok) {
@@ -22,32 +23,16 @@ export async function createPayment({ amount, orderCode, orderDescription, custo
 
 // ─── CHECK PAYMENT STATUS ─────────────────────────────────────────────────────
 export async function checkPaymentStatus(orderCode) {
-  const response = await fetch(`${API_URL}/status/${encodeURIComponent(orderCode)}`);
+  const response = await fetch(`${API_URL}/status/${encodeURIComponent(orderCode)}`, {
+    credentials: "include", // bắt buộc — route yêu cầu đăng nhập để xác thực chủ đơn hàng
+  });
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to check payment status");
+    throw new Error(err.error || err.message || "Failed to check payment status");
   }
 
   return response.json();
-}
-
-// ─── GET ALL ORDERS (Admin) ───────────────────────────────────────────────────
-export async function getAllOrders() {
-  const response = await fetch(`${API_URL}/orders`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch orders");
-  }
-
-  return response.json();
-}
-
-// ─── GENERATE ORDER CODE ──────────────────────────────────────────────────────
-export function generateOrderCode() {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
-  return `FNR${timestamp}${random}`;
 }
 
 // ─── FORMAT CURRENCY (VND) ────────────────────────────────────────────────────

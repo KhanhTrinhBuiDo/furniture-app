@@ -23,6 +23,10 @@ const SORT_OPTIONS = [
   { value: "price_desc", label: "Giá giảm dần" },
   { value: "best_selling", label: "Bán chạy nhất" },
 ];
+// Khớp chính xác với danh sách STYLES trong AdminProducts.jsx — vì backend
+// match nguyên văn (regex, không phân biệt hoa/thường) nên các tag gợi ý
+// này phải trùng với giá trị Admin thực sự chọn khi tạo sản phẩm.
+const STYLE_SUGGESTIONS = ["Tối giản", "Hàn Quốc", "Scandinavian", "Hiện đại", "Đông Dương", "Cổ điển", "Tropical"];
 
 export default function ShopPage() {
   const { searchQuery, setSearchQuery, navigate, setSelectedProduct } = useStore();
@@ -37,6 +41,7 @@ export default function ShopPage() {
     category: "",
     priceIdx: 0,
     sort: "newest",
+    style: "",
   });
   const [localSearch, setLocalSearch] = useState(searchQuery || "");
 
@@ -52,6 +57,7 @@ export default function ShopPage() {
       const params = new URLSearchParams({ page: pg, limit: 12, sort: filters.sort });
       if (localSearch.trim()) params.set("q", localSearch.trim());
       if (filters.category) params.set("category", filters.category);
+      if (filters.style.trim()) params.set("style", filters.style.trim());
       if (pr.min !== null) params.set("minPrice", pr.min);
       if (pr.max !== null) params.set("maxPrice", pr.max);
 
@@ -87,13 +93,13 @@ export default function ShopPage() {
   };
 
   const clearAll = () => {
-    setFilters({ category: "", priceIdx: 0, sort: "newest" });
+    setFilters({ category: "", priceIdx: 0, sort: "newest", style: "" });
     setLocalSearch("");
     setSearchQuery("");
     setPage(1);
   };
 
-  const activeFiltersCount = (filters.category ? 1 : 0) + (filters.priceIdx !== 0 ? 1 : 0);
+  const activeFiltersCount = (filters.category ? 1 : 0) + (filters.priceIdx !== 0 ? 1 : 0) + (filters.style.trim() ? 1 : 0);
 
   return (
     <div style={{ background: C.cream, minHeight: "100vh" }}>
@@ -174,6 +180,34 @@ export default function ShopPage() {
                 </div>
               </div>
 
+              {/* Style — FR-07: lọc theo loại/phong cách nội thất */}
+              <div style={{ marginBottom: 24 }}>
+                <p style={styles.filterLabel}>Phong cách</p>
+                <input
+                  type="text"
+                  placeholder="VD: Hiện đại, Tối giản..."
+                  value={filters.style}
+                  onChange={e => setFilter("style", e.target.value)}
+                  style={styles.styleInput}
+                  onFocus={e => (e.target.style.borderColor = C.wood)}
+                  onBlur={e => (e.target.style.borderColor = C.sand)}
+                />
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                  {STYLE_SUGGESTIONS.map(s => (
+                    <button key={s} onClick={() => setFilter("style", filters.style === s ? "" : s)}
+                      style={{
+                        fontSize: 11, padding: "4px 10px", borderRadius: 12, cursor: "pointer",
+                        border: `1px solid ${filters.style === s ? C.wood : C.sand}`,
+                        background: filters.style === s ? C.wood : "#fff",
+                        color: filters.style === s ? "#fff" : "#888",
+                        fontFamily: "'Poppins',sans-serif", transition: "all 0.15s",
+                      }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Price */}
               <div>
                 <p style={styles.filterLabel}>Khoảng giá</p>
@@ -213,7 +247,7 @@ export default function ShopPage() {
                 </svg>
                 <p style={{ fontSize: 16, color: C.dark, marginBottom: 8 }}>Không tìm thấy sản phẩm</p>
                 <p style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>
-                  {total === 0 && !localSearch && !filters.category
+                  {total === 0 && !localSearch && !filters.category && !filters.style
                     ? "Chưa có sản phẩm nào trong hệ thống. Admin hãy thêm sản phẩm qua Admin Panel."
                     : "Thử thay đổi từ khoá hoặc bộ lọc."}
                 </p>
@@ -271,4 +305,5 @@ function RadioItem({ name, checked, onChange, label }) {
 const styles = {
   filterLabel: { fontSize: 11, fontWeight: 700, color: "#1A1A2E", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 10px" },
   pageBtn: { width: 34, height: 34, border: "1px solid #D9C9B0", borderRadius: 6, background: "#fff", color: "#1A1A2E", cursor: "pointer", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" },
+  styleInput: { width: "100%", padding: "8px 10px", border: "1px solid #D9C9B0", borderRadius: 6, fontSize: 13, fontFamily: "'Poppins',sans-serif", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s" },
 };

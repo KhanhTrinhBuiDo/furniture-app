@@ -3,10 +3,10 @@ import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import Voucher from "../models/Voucher.js";
-import { protect, requireAdmin, requireStaff } from "../middleware/authMiddleware.js";
+import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-router.use(protect, requireStaff);
+router.use(protect, requireAdmin);
 
 // ─── GET /api/admin/dashboard ─────────────────────────────────────────────────
 router.get("/dashboard", async (req, res) => {
@@ -74,7 +74,7 @@ router.get("/dashboard", async (req, res) => {
 });
 
 // ─── Users ────────────────────────────────────────────────────────────────────
-router.get("/users", requireAdmin, async (req, res) => {
+router.get("/users", async (req, res) => {
     try {
         const { q, page = 1, limit = 20, role } = req.query;
         const filter = {};
@@ -89,7 +89,7 @@ router.get("/users", requireAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.put("/users/:id", requireAdmin, async (req, res) => {
+router.put("/users/:id", async (req, res) => {
     try {
         const { isActive, role } = req.body;
         const user = await User.findByIdAndUpdate(req.params.id, { isActive, role }, { new: true }).select("-password");
@@ -98,7 +98,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.delete("/users/:id", requireAdmin, async (req, res) => {
+router.delete("/users/:id", async (req, res) => {
     try {
         if (req.params.id === req.user._id.toString())
             return res.status(400).json({ message: "Không thể xóa chính mình" });
@@ -115,14 +115,14 @@ router.get("/vouchers", async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.post("/vouchers", requireAdmin, async (req, res) => {
+router.post("/vouchers", async (req, res) => {
     try {
         const v = await Voucher.create(req.body);
         res.status(201).json({ success: true, voucher: v });
     } catch (err) { res.status(400).json({ message: err.message }); }
 });
 
-router.put("/vouchers/:id", requireAdmin, async (req, res) => {
+router.put("/vouchers/:id", async (req, res) => {
     try {
         const v = await Voucher.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!v) return res.status(404).json({ message: "Không tìm thấy voucher" });
@@ -130,7 +130,7 @@ router.put("/vouchers/:id", requireAdmin, async (req, res) => {
     } catch (err) { res.status(400).json({ message: err.message }); }
 });
 
-router.delete("/vouchers/:id", requireAdmin, async (req, res) => {
+router.delete("/vouchers/:id", async (req, res) => {
     try {
         await Voucher.findByIdAndDelete(req.params.id);
         res.json({ success: true, message: "Đã xóa voucher" });
@@ -200,7 +200,7 @@ router.get("/export/products", async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.get("/export/users", requireAdmin, async (req, res) => {
+router.get("/export/users", async (req, res) => {
     try {
         const users = await User.find().select("-password").sort({ createdAt: -1 }).lean();
         const rows = users.map(u => ({

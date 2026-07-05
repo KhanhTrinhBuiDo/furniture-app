@@ -20,11 +20,13 @@ const NAV_LINKS = [
 ];
 
 const ACCOUNT_LINKS = [
-    { label: "Tài khoản của tôi", page: "home" },
+    { label: "Tài khoản của tôi", page: "profile" },
     { label: "Đăng nhập / Đăng ký", page: "home" },
     { label: "Giỏ hàng", page: "cart" },
     { label: "Wishlist", page: "home" },
-    { label: "Theo dõi đơn hàng", page: "home" },
+    { label: "Theo dõi đơn hàng", page: "orders" },
+    { label: "Vệ sinh miễn phí", page: "cleaning-service" },
+    { label: "Thu cũ đổi mới", page: "trade-in" },
 ];
 
 const SOCIAL = [
@@ -156,7 +158,7 @@ export default function Footer() {
 
                     {/* Col 3 — Account */}
                     <div>
-                        <h4 style={styles.colHeading}>Tài khoản</h4>
+                        <h4 style={styles.colHeading}>Tài khoản & Dịch vụ</h4>
                         <ul style={styles.list}>
                             {ACCOUNT_LINKS.map((l) => (
                                 <li key={l.label} style={styles.listItem}>
@@ -248,6 +250,14 @@ export default function Footer() {
                                 {t}
                             </button>
                         ))}
+                        <button
+                            onClick={() => setPage("admin-login")}
+                            style={{ ...styles.linkBtn, fontSize: 11 }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = C.accent)}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
+                        >
+                            Admin
+                        </button>
                     </div>
                 </div>
             </div>

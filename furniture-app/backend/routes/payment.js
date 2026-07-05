@@ -1,54 +1,60 @@
 import express from "express";
+import Order from "../models/Order.js";
 import {
   createVNPayPaymentUrl,
   verifyVNPayResponse,
   parseVNPayResponse,
 } from "../utils/vnpay.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ─── In-Memory Order Storage (for demo) ────────────────────────────────
-// In production, use database
-const orders = new Map();
-
 // ─── DEMO MODE ───────────────────────────────────────────────────────────
-// Đặt false để dùng lại luồng VNPay thật (redirect sang cổng thanh toán).
-// Khi true: mọi đơn hàng tự động được đánh dấu "completed" ngay khi tạo,
-// không gọi VNPay thật — dùng để test các luồng sau thanh toán (warranty,
-// order status, email,...) mà không cần tài khoản VNPay sandbox thật.
+// Đặt false để dùng lại luồng VNPay thật (redirect sang cổng thanh toán,
+// chờ webhook xác nhận). Khi true: đơn hàng được đánh dấu "paid" ngay lập
+// tức trên chính Order thật trong MongoDB — dùng để test các luồng sau
+// thanh toán (warranty, cleaning, order status,...) mà không cần tài khoản
+// VNPay sandbox thật.
 const DEMO_AUTO_SUCCESS = true;
 
-// ─── CREATE PAYMENT URL ─────────────────────────────────────────────────
-router.post("/create-payment", (req, res) => {
+// ─── POST /api/payment/create-payment ────────────────────────────────────
+// Nhận orderId của một Order THẬT đã được tạo qua POST /api/orders,
+// khởi tạo thanh toán cho đúng đơn hàng đó (không tự tạo bản ghi tạm nữa).
+router.post("/create-payment", protect, async (req, res) => {
   try {
-    const { amount, orderCode, orderDescription, customerInfo } = req.body;
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ error: "Thiếu orderId" });
+    }
 
-    // Validate input
-    if (!amount || !orderCode) {
-      return res.status(400).json({ error: "Missing required fields" });
+    const order = await Order.findOne({ _id: orderId, user: req.user._id });
+    if (!order) {
+      return res.status(404).json({ error: "Không tìm thấy đơn hàng" });
+    }
+    if (order.paymentStatus === "paid") {
+      return res.status(400).json({ error: "Đơn hàng đã được thanh toán" });
     }
 
     if (DEMO_AUTO_SUCCESS) {
-      // ─── Demo: bỏ qua VNPay, đánh dấu thành công ngay ───────────────
-      orders.set(orderCode, {
-        amount,
-        orderDescription,
-        customerInfo,
-        createdAt: new Date(),
-        status: "completed",
-        transactionNo: `DEMO${Date.now()}`,
-        payDate: formatDateVN(new Date()),
-      });
+      order.paymentStatus = "paid";
+      order.transactionNo = `DEMO${Date.now()}`;
+      order.paidAt = new Date();
+      if (order.status === "pending") {
+        order.status = "confirmed";
+        order.statusHistory.push({
+          status: "confirmed",
+          note: "[DEMO] Thanh toán VNPay tự động thành công",
+        });
+      }
+      await order.save();
 
       const frontendUrl = process.env.CORS_ORIGIN || "http://localhost:3000";
-      // Trỏ thẳng về trang PaymentReturn của frontend, giả lập tham số
-      // mà VNPay thật sẽ gửi kèm khi redirect về (vnp_TxnRef, vnp_ResponseCode).
-      const paymentUrl = `${frontendUrl}/?vnp_TxnRef=${encodeURIComponent(orderCode)}&vnp_ResponseCode=00&vnp_Amount=${amount * 100}`;
+      const paymentUrl = `${frontendUrl}/?vnp_TxnRef=${encodeURIComponent(order.orderCode)}&vnp_ResponseCode=00`;
 
       return res.json({
         success: true,
         paymentUrl,
-        orderCode,
+        orderCode: order.orderCode,
         demo: true,
       });
     }
@@ -60,9 +66,9 @@ router.post("/create-payment", (req, res) => {
       "127.0.0.1";
 
     const paymentUrl = createVNPayPaymentUrl({
-      amount,
-      orderCode,
-      orderDescription: orderDescription || "Thanh toán đơn hàng",
+      amount: order.total,
+      orderCode: order.orderCode,
+      orderDescription: `Thanh toán đơn hàng ${order.orderCode}`,
       returnUrl: process.env.VNPAY_RETURN_URL,
       ipAddress,
       tmnCode: process.env.VNPAY_TMNCODE,
@@ -70,129 +76,80 @@ router.post("/create-payment", (req, res) => {
       vnpayUrl: process.env.VNPAY_URL,
     });
 
-    orders.set(orderCode, {
-      amount,
-      orderDescription,
-      customerInfo,
-      createdAt: new Date(),
-      status: "pending",
-    });
-
-    res.json({
-      success: true,
-      paymentUrl,
-      orderCode,
-    });
+    res.json({ success: true, paymentUrl, orderCode: order.orderCode });
   } catch (error) {
     console.error("Payment creation error:", error);
     res.status(500).json({ error: "Failed to create payment" });
   }
 });
 
-// ─── PAYMENT CALLBACK/WEBHOOK ──────────────────────────────────────────
-// (Không dùng khi DEMO_AUTO_SUCCESS = true, giữ nguyên cho VNPay thật)
-router.get("/webhook", (req, res) => {
+// ─── GET /api/payment/webhook — Callback thật từ VNPay ───────────────────
+// NFR-10: bắt buộc xác minh chữ ký (verifyVNPayResponse) TRƯỚC khi cập nhật
+// trạng thái thanh toán. Endpoint này công khai (VNPay gọi server-to-server,
+// không có cookie đăng nhập) nhưng được bảo vệ bằng xác thực chữ ký HMAC.
+router.get("/webhook", async (req, res) => {
   try {
-    const vnpParams = req.query;
+    const vnpParams = { ...req.query };
 
-    const isValid = verifyVNPayResponse(
-      vnpParams,
-      process.env.VNPAY_HASHSECRET
-    );
-
+    const isValid = verifyVNPayResponse(vnpParams, process.env.VNPAY_HASHSECRET);
     if (!isValid) {
-      return res.status(400).json({
-        RspCode: "97",
-        Message: "Invalid signature",
-      });
+      return res.status(400).json({ RspCode: "97", Message: "Invalid signature" });
     }
 
     const orderCode = vnpParams.vnp_TxnRef;
     const responseData = parseVNPayResponse(vnpParams);
 
-    if (orders.has(orderCode)) {
-      const order = orders.get(orderCode);
-      order.status = responseData.isSuccess ? "completed" : "failed";
-      order.transactionNo = responseData.transactionNo;
-      order.payDate = responseData.payDate;
-      orders.set(orderCode, order);
+    const order = await Order.findOne({ orderCode });
+    if (order) {
+      if (responseData.isSuccess) {
+        order.paymentStatus = "paid";
+        order.transactionNo = responseData.transactionNo;
+        order.paidAt = new Date();
+        if (order.status === "pending") {
+          order.status = "confirmed";
+          order.statusHistory.push({ status: "confirmed", note: "Thanh toán VNPay thành công" });
+        }
+      } else {
+        order.paymentStatus = "failed";
+      }
+      await order.save();
     }
 
-    res.json({
-      RspCode: "00",
-      Message: "Confirm received",
-    });
+    res.json({ RspCode: "00", Message: "Confirm received" });
   } catch (error) {
     console.error("Webhook error:", error);
-    res.json({
-      RspCode: "99",
-      Message: "Error processing webhook",
-    });
+    res.json({ RspCode: "99", Message: "Error processing webhook" });
   }
 });
 
-// ─── CHECK PAYMENT STATUS ──────────────────────────────────────────────
-router.get("/status/:orderCode", (req, res) => {
+// ─── GET /api/payment/status/:orderCode ──────────────────────────────────
+// Chỉ chủ đơn hàng mới xem được trạng thái thanh toán của chính mình.
+router.get("/status/:orderCode", protect, async (req, res) => {
   try {
-    const { orderCode } = req.params;
-
-    if (!orders.has(orderCode)) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
+    const order = await Order.findOne({ orderCode: req.params.orderCode, user: req.user._id });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    const order = orders.get(orderCode);
+    const status =
+      order.paymentStatus === "paid" ? "completed" :
+        order.paymentStatus === "failed" ? "failed" : "pending";
 
     res.json({
       success: true,
-      orderCode,
-      status: order.status,
-      amount: order.amount,
+      orderCode: order.orderCode,
+      status,
+      amount: order.total,
       message:
-        order.status === "completed"
-          ? "Thanh toán thành công"
-          : order.status === "failed"
-            ? "Thanh toán thất bại"
-            : "Đang chờ thanh toán",
+        status === "completed" ? "Thanh toán thành công" :
+          status === "failed" ? "Thanh toán thất bại" : "Đang chờ thanh toán",
       transactionNo: order.transactionNo,
-      payDate: order.payDate,
+      payDate: order.paidAt,
     });
   } catch (error) {
     console.error("Status check error:", error);
     res.status(500).json({ error: "Failed to check status" });
   }
 });
-
-// ─── GET ALL ORDERS (Admin) ────────────────────────────────────────────
-router.get("/orders", (req, res) => {
-  try {
-    const ordersList = Array.from(orders.entries()).map(([code, data]) => ({
-      orderCode: code,
-      ...data,
-    }));
-
-    res.json({
-      success: true,
-      total: ordersList.length,
-      orders: ordersList,
-    });
-  } catch (error) {
-    console.error("Orders fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch orders" });
-  }
-});
-
-// ─── Helper ─────────────────────────────────────────────────────────────
-function formatDateVN(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  const h = String(date.getHours()).padStart(2, "0");
-  const mi = String(date.getMinutes()).padStart(2, "0");
-  const s = String(date.getSeconds()).padStart(2, "0");
-  return `${y}${m}${d}${h}${mi}${s}`;
-}
 
 export default router;

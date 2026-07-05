@@ -34,14 +34,6 @@ export function requireAdmin(req, res, next) {
     next();
 }
 
-// ─── Require Staff or Admin ───────────────────────────────────────────────────
-export function requireStaff(req, res, next) {
-    if (!["admin", "staff"].includes(req.user?.role)) {
-        return res.status(403).json({ message: "Cần quyền Staff hoặc Admin" });
-    }
-    next();
-}
-
 // ─── Optional auth (không bắt buộc đăng nhập, nhưng nếu có thì parse) ────────
 export async function optionalAuth(req, res, next) {
     try {

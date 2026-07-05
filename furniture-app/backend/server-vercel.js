@@ -31,6 +31,8 @@ import orderRouter from "./routes/orders.js";
 import adminRouter from "./routes/admin.js";
 import blogRouter from "./routes/blog.js";
 import warrantyRouter from "./routes/warranty.js";
+import cleaningRouter from "./routes/cleaning.js";
+import tradeInRouter from "./routes/tradein.js";
 
 const app = express();
 
@@ -89,6 +91,8 @@ app.use("/api/orders", orderRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/blog", blogRouter);
 app.use("/api/warranty", warrantyRouter);
+app.use("/api/cleaning", cleaningRouter);
+app.use("/api/tradein", tradeInRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => {

@@ -6,7 +6,9 @@ const NAV_ITEMS = [
     { key: "admin-products", icon: "🛋", label: "Sản phẩm" },
     { key: "admin-vouchers", icon: "🎟", label: "Voucher" },
     { key: "admin-users", icon: "👥", label: "Người dùng" },
-    { key: "admin-blog", icon: "📝", label: "Blog" },  // ← FIX #3
+    { key: "admin-blog", icon: "📝", label: "Blog" },
+    { key: "admin-cleaning", icon: "🧼", label: "Vệ sinh miễn phí" },
+    { key: "admin-tradein", icon: "♻️", label: "Thu cũ đổi mới" },
 ];
 
 export default function AdminLayout({ children, activePage }) {

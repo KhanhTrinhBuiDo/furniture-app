@@ -6,7 +6,7 @@ import { isLoggedIn, getCurrentUser } from "../services/authService";
  * Bọc trang cần đăng nhập.
  * Props:
  *   redirectTo   — trang redirect nếu chưa đăng nhập (default: "login")
- *   requireRole  — "admin" | "staff" — nếu cần role cụ thể
+ *   requireRole  — "admin" — nếu cần role cụ thể
  */
 export default function ProtectedRoute({ children, redirectTo = "login", requireRole }) {
     const { navigate, page, currentUser } = useStore();
@@ -19,13 +19,13 @@ export default function ProtectedRoute({ children, redirectTo = "login", require
             navigate(redirectTo);
             return;
         }
-        if (requireRole && user.role !== requireRole && !(requireRole === "staff" && user.role === "admin")) {
+        if (requireRole && user.role !== requireRole) {
             navigate("home");
         }
     }, [loggedIn, requireRole]);
 
     if (!loggedIn) return <RedirectScreen text="Đang chuyển hướng đến trang đăng nhập..." />;
-    if (requireRole && user.role !== requireRole && !(requireRole === "staff" && user.role === "admin")) {
+    if (requireRole && user.role !== requireRole) {
         return <RedirectScreen text="Bạn không có quyền truy cập trang này" />;
     }
 

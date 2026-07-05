@@ -16,6 +16,10 @@ import OrderHistoryPage from "./pages/OrderHistoryPage";
 import BlogPage from "./pages/BlogPage";
 import WarrantyPage from "./pages/WarrantyPage";
 import PaymentReturn from "./pages/PaymentReturn";
+import CleaningServicePage from "./pages/CleaningServicePage";
+import TradeInPage from "./pages/TradeInPage";
+import ProfilePage from "./pages/ProfilePage";
+import AdminLoginPage from "./pages/AdminLoginPage";
 
 // Auth pages
 import LoginPage from "./pages/LoginPage";
@@ -28,18 +32,22 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminUsers from "./pages/admin/AdminUsers";
-import AdminBlog from "./pages/admin/AdminBlog";      // ← FIX #3
+import AdminBlog from "./pages/admin/AdminBlog";
+import AdminCleaning from "./pages/admin/AdminCleaning";
+import AdminTradeIn from "./pages/admin/AdminTradeIn";
 
 import { getMe } from "./services/authService";
 
-// ─── Admin page map — thêm admin-blog ────────────────────────────────────────
+// ─── Admin page map ───────────────────────────────────────────────────────────
 const ADMIN_PAGES = {
   "admin-dashboard": AdminDashboard,
   "admin-orders": AdminOrders,
   "admin-products": AdminProducts,
   "admin-vouchers": AdminVouchers,
   "admin-users": AdminUsers,
-  "admin-blog": AdminBlog,           // ← FIX #3
+  "admin-blog": AdminBlog,
+  "admin-cleaning": AdminCleaning,
+  "admin-tradein": AdminTradeIn,
 };
 
 // ─── Auth Init ────────────────────────────────────────────────────────────────
@@ -80,6 +88,10 @@ function Router() {
     return null;
   }
 
+  // Cổng đăng nhập Admin riêng — PHẢI kiểm tra trước block "admin-" bên dưới,
+  // vì "admin-login" cũng khớp page.startsWith("admin-")
+  if (page === "admin-login") return <AdminLoginPage />;
+
   // Admin pages
   if (page.startsWith("admin-")) {
     const AdminPage = ADMIN_PAGES[page];
@@ -96,7 +108,7 @@ function Router() {
       );
     }
     return (
-      <ProtectedRoute redirectTo="login" requireRole="admin">
+      <ProtectedRoute redirectTo="admin-login" requireRole="admin">
         <AdminLayout activePage={page}>
           <AdminPage />
         </AdminLayout>
@@ -113,6 +125,9 @@ function Router() {
     case "product": return <ProductDetailPage />;
     case "blog": return <BlogPage />;
     case "warranty": return <ProtectedRoute><WarrantyPage /></ProtectedRoute>;
+    case "profile": return <ProtectedRoute><ProfilePage /></ProtectedRoute>;
+    case "cleaning-service": return <ProtectedRoute><CleaningServicePage /></ProtectedRoute>;
+    case "trade-in": return <ProtectedRoute><TradeInPage /></ProtectedRoute>;
     case "category": return selectedCategory ? <CategoryPage /> : <HomePage />;
     case "orders": return <ProtectedRoute><OrderHistoryPage /></ProtectedRoute>;
     case "cart": return <ProtectedRoute><CartPage /></ProtectedRoute>;

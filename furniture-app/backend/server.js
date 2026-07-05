@@ -64,6 +64,9 @@ const [
   orderRouter,
   adminRouter,
   blogRouter,
+  warrantyRouter,
+  cleaningRouter,
+  tradeInRouter,
 ] = await Promise.all([
   safeImport("./routes/payment.js"),
   safeImport("./routes/auth.js"),
@@ -71,6 +74,9 @@ const [
   safeImport("./routes/orders.js"),
   safeImport("./routes/admin.js"),
   safeImport("./routes/blog.js"),
+  safeImport("./routes/warranty.js"),
+  safeImport("./routes/cleaning.js"),
+  safeImport("./routes/tradein.js"),
 ]);
 
 const stub = (name) => (_req, res) =>
@@ -86,6 +92,9 @@ const dbRoutes = [
   { path: "/api/orders", router: orderRouter, name: "Orders" },
   { path: "/api/admin", router: adminRouter, name: "Admin" },
   { path: "/api/blog", router: blogRouter, name: "Blog" },
+  { path: "/api/warranty", router: warrantyRouter, name: "Warranty" },
+  { path: "/api/cleaning", router: cleaningRouter, name: "Cleaning" },
+  { path: "/api/tradein", router: tradeInRouter, name: "TradeIn" },
 ];
 
 for (const { path, router, name } of dbRoutes) {
