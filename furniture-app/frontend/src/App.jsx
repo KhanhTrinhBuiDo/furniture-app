@@ -63,30 +63,40 @@ function AuthInit() {
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 function Router() {
-  const { page, selectedCategory, navigate, showToast, setCurrentUser } = useStore();
+  const { page, selectedCategory, selectedOrderCode, navigate, showToast, setCurrentUser } = useStore();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  // VNPay return
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("vnp_TxnRef")) return <PaymentReturn />;
+  // ─── Xử lý các redirect đặc biệt từ bên ngoài (VNPay, Google OAuth) ─────────
+  // Chỉ chạy MỘT LẦN khi vừa được redirect về (ngay sau full-page navigate),
+  // sau đó chuyển hẳn sang cơ chế điều hướng có quản lý URL (navigate) để
+  // trang xác nhận thanh toán / trang đích giữ đúng vị trí khi refresh.
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
 
-  // Google OAuth callback
-  if (urlParams.get("auth") === "success") {
-    window.history.replaceState({}, document.title, window.location.pathname);
-    getMe().then(d => {
-      if (d?.user) {
-        setCurrentUser(d.user);
-        showToast({ message: `Chào mừng, ${d.user.fullName}!`, type: "success" });
-      }
-    }).catch(() => { });
-    const intended = sessionStorage.getItem("funiro_intended");
-    sessionStorage.removeItem("funiro_intended");
-    navigate(intended && intended !== "login" ? intended : "home");
-    return null;
-  }
+    const vnpTxnRef = urlParams.get("vnp_TxnRef");
+    if (vnpTxnRef) {
+      navigate("payment-result", { orderCode: vnpTxnRef, category: null, product: null });
+      return;
+    }
+
+    if (urlParams.get("auth") === "success") {
+      getMe().then(d => {
+        if (d?.user) {
+          setCurrentUser(d.user);
+          showToast({ message: `Chào mừng, ${d.user.fullName}!`, type: "success" });
+        }
+      }).catch(() => { });
+      const intended = sessionStorage.getItem("funiro_intended");
+      sessionStorage.removeItem("funiro_intended");
+      navigate(intended && intended !== "login" ? intended : "home");
+    }
+    // Chỉ chạy khi mount lần đầu (đúng thời điểm ngay sau khi trình duyệt vừa
+    // full-page redirect về từ VNPay/Google) — không phụ thuộc page hiện tại.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Cổng đăng nhập Admin riêng — PHẢI kiểm tra trước block "admin-" bên dưới,
   // vì "admin-login" cũng khớp page.startsWith("admin-")
@@ -128,6 +138,7 @@ function Router() {
     case "profile": return <ProtectedRoute><ProfilePage /></ProtectedRoute>;
     case "cleaning-service": return <ProtectedRoute><CleaningServicePage /></ProtectedRoute>;
     case "trade-in": return <ProtectedRoute><TradeInPage /></ProtectedRoute>;
+    case "payment-result": return <ProtectedRoute><PaymentReturn orderCode={selectedOrderCode} /></ProtectedRoute>;
     case "category": return selectedCategory ? <CategoryPage /> : <HomePage />;
     case "orders": return <ProtectedRoute><OrderHistoryPage /></ProtectedRoute>;
     case "cart": return <ProtectedRoute><CartPage /></ProtectedRoute>;

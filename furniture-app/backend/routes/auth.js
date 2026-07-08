@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import { signToken, setAuthCookie, clearAuthCookie, generateOTP, isOTPValid } from "../utils/jwtUtils.js";
 import { sendOTPEmail, sendWelcomeEmail } from "../utils/emailUtils.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { uploadSingle, handleUploadError } from "../middleware/upload-cloudinary.js";
 
 const router = express.Router();
 
@@ -116,6 +117,27 @@ router.put("/profile", protect, async (req, res) => {
         res.json({ success: true, user: user.toPublicJSON() });
     } catch (err) {
         res.status(400).json({ message: err.message });
+    }
+});
+
+// ─── PUT /api/auth/avatar — Upload ảnh đại diện lên Cloudinary ───────────────
+router.put("/avatar", protect, uploadSingle, handleUploadError, async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Vui lòng chọn ảnh để tải lên" });
+        }
+
+        // req.file.path là URL Cloudinary đầy đủ (CloudinaryStorage tự upload)
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { avatar: req.file.path },
+            { new: true }
+        );
+
+        res.json({ success: true, user: user.toPublicJSON() });
+    } catch (err) {
+        console.error("Upload avatar error:", err.message);
+        res.status(500).json({ message: err.message || "Lỗi tải ảnh lên" });
     }
 });
 

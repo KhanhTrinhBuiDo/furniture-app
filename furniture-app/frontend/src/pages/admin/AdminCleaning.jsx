@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useStore } from "../../../../store/store";
 import { getAllCleaningRequests, updateCleaningStatus } from "../../services/cleaningService";
 
 const C = { dark: "#4A2C1A", wood: "#8B5E3C", sand: "#D9C9B0", beige: "#F0E8DC", cream: "#FAF7F2", error: "#C47B5A", green: "#6B7C5C", gold: "#D4A843" };
@@ -12,6 +13,7 @@ const STATUS_CFG = {
 };
 
 export default function AdminCleaning() {
+    const { showToast } = useStore();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusTab, setStatusTab] = useState("");
@@ -46,7 +48,7 @@ export default function AdminCleaning() {
             setModal(null);
             load();
         } catch (err) {
-            alert(err.message);
+            showToast({ message: err.message || "Có lỗi xảy ra", type: "error" });
         }
         setSaving(false);
     };

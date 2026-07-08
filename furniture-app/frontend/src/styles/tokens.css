@@ -1,0 +1,56 @@
+/**
+ * Design tokens dùng chung cho toàn bộ CSS Modules trong dự án.
+ * Đồng bộ 1-1 với /styles/theme.js (nguồn JS dùng cho style tính toán động,
+ * VD: điều kiện màu theo trạng thái). Khi đổi màu thương hiệu, chỉ cần sửa
+ * CẢ HAI file này cùng lúc để JS và CSS luôn khớp nhau.
+ *
+ * Cách dùng trong file .module.css:
+ *   .card { background: var(--color-soft); color: var(--color-dark); }
+ */
+
+:root {
+    /* Core palette */
+    --color-primary: #B8860B;
+    --color-dark: #1A1A2E;
+    --color-bg: #FAF7F2;
+    --color-soft: #F0E8DC;
+
+    /* Extended */
+    --color-cream: #FAF7F2;
+    --color-beige: #F0E8DC;
+    --color-sand: #D9C9B0;
+    --color-tan: #C4A882;
+    --color-gold: #C9A96E;
+    --color-champagne: #F5E6C8;
+    --color-wood: #8B5E3C;
+    --color-coffee: #6D3914;
+
+    /* Semantic */
+    --color-success: #6B7C5C;
+    --color-warn: #E67E22;
+    --color-error: #C47B5A;
+    --color-info: #2980B9;
+    --color-gold-accent: #D4A843;
+
+    /* Typography */
+    --font-display: 'Cormorant Garamond', 'Playfair Display', serif;
+    --font-body: 'Poppins', sans-serif;
+
+    /* Spacing scale — dùng cho padding/margin/gap thay vì số magic rải rác */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
+    --space-2xl: 64px;
+
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Shadow */
+    --shadow-sm: 0 2px 8px rgba(26, 26, 46, 0.05);
+    --shadow-md: 0 8px 32px rgba(74, 44, 26, 0.10);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.12);
+}

@@ -110,13 +110,13 @@ export default function Footer() {
                         </button>
 
                         <p style={{ fontSize: 12, lineHeight: 1.8, color: C.dim, marginBottom: 8 }}>
-                            400 University Drive Suite 200<br />
-                            Coral Gables, FL 33134 USA
+                            88 Đường Nguyễn Huệ, Phường Bến Nghé<br />
+                            Quận 1, TP. Hồ Chí Minh
                         </p>
 
                         <p style={{ fontSize: 12, lineHeight: 1.8, color: C.dim }}>
-                            support@Amore Home.com<br />
-                            +62 (299) 466 3455
+                            support@amorehome.vn<br />
+                            +84 28 3822 9999
                         </p>
 
                         {/* Social icons */}

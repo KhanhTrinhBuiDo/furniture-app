@@ -52,6 +52,21 @@ export async function updateProfile(data) {
     });
 }
 
+/** Upload ảnh đại diện lên Cloudinary */
+export async function uploadAvatar(file) {
+    const form = new FormData();
+    form.append("image", file);
+    const res = await fetch(`${BASE}/avatar`, {
+        method: "PUT",
+        credentials: "include",
+        body: form, // Không set Content-Type — browser tự set kèm boundary
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Upload thất bại");
+    if (data.user) localStorage.setItem("funiro_user", JSON.stringify(data.user));
+    return data;
+}
+
 /** Đổi mật khẩu (khi đã đăng nhập) */
 export async function changePassword({ currentPassword, newPassword }) {
     return request("/change-password", {

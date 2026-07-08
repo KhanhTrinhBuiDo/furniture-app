@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useStore } from "../../../../store/store";
 import { getAllTradeInRequests, appraiseTradeIn, rejectTradeIn } from "../../services/tradeInService";
 
 const C = { dark: "#4A2C1A", wood: "#8B5E3C", sand: "#D9C9B0", beige: "#F0E8DC", cream: "#FAF7F2", error: "#C47B5A", green: "#6B7C5C", gold: "#D4A843" };
@@ -14,6 +15,7 @@ const STATUS_CFG = {
 const CONDITION_LABELS = { like_new: "Như mới", good: "Tốt", fair: "Khá", poor: "Cũ, có hư hỏng" };
 
 export default function AdminTradeIn() {
+    const { showToast } = useStore();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusTab, setStatusTab] = useState("");
@@ -33,14 +35,20 @@ export default function AdminTradeIn() {
     useEffect(() => { load(); }, [load]);
 
     const handleAppraise = async () => {
-        if (!appraisedValue || Number(appraisedValue) <= 0) return alert("Vui lòng nhập giá trị định giá hợp lệ");
+        if (!appraisedValue || Number(appraisedValue) <= 0) {
+            showToast({ message: "Vui lòng nhập giá trị định giá hợp lệ", type: "error" });
+            return;
+        }
         setSaving(true);
         try {
             await appraiseTradeIn(appraiseModal._id, { appraisedValue: Number(appraisedValue), adminNote });
             setAppraiseModal(null);
             setAppraisedValue(""); setAdminNote("");
+            showToast({ message: "Đã gửi ưu đãi cho khách hàng", type: "success" });
             load();
-        } catch (err) { alert(err.message); }
+        } catch (err) {
+            showToast({ message: err.message || "Có lỗi xảy ra", type: "error" });
+        }
         setSaving(false);
     };
 
@@ -48,8 +56,11 @@ export default function AdminTradeIn() {
         const note = prompt("Lý do từ chối (tuỳ chọn):") || "";
         try {
             await rejectTradeIn(id, note);
+            showToast({ message: "Đã từ chối yêu cầu", type: "info" });
             load();
-        } catch (err) { alert(err.message); }
+        } catch (err) {
+            showToast({ message: err.message || "Có lỗi xảy ra", type: "error" });
+        }
     };
 
     return (

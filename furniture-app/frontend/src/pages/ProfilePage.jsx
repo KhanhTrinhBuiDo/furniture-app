@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useStore } from "../../../store/store";
-import { updateProfile, changePassword } from "../services/authService";
+import { updateProfile, changePassword, uploadAvatar } from "../services/authService";
 
 const C = {
     bg: "#FAF7F2", card: "#fff", dark: "#4A2C1A", wood: "#8B5E3C",
@@ -20,6 +20,30 @@ export default function ProfilePage() {
         avatar: currentUser?.avatar || "",
     });
     const [savingInfo, setSavingInfo] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+    const handleAvatarSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+            showToast({ message: "Vui lòng chọn file ảnh", type: "error" });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast({ message: "Ảnh tối đa 5MB", type: "error" });
+            return;
+        }
+        setUploadingAvatar(true);
+        try {
+            const { user } = await uploadAvatar(file);
+            setCurrentUser(user);
+            setForm(f => ({ ...f, avatar: user.avatar }));
+            showToast({ message: "Cập nhật ảnh đại diện thành công", type: "success" });
+        } catch (err) {
+            showToast({ message: err.message || "Tải ảnh thất bại", type: "error" });
+        }
+        setUploadingAvatar(false);
+    };
 
     const handleInfoChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -132,8 +156,23 @@ export default function ProfilePage() {
                         </div>
 
                         <div style={{ marginBottom: 24 }}>
-                            <label style={styles.label}>Ảnh đại diện (URL)</label>
-                            <input type="text" name="avatar" placeholder="https://..." value={form.avatar} onChange={handleInfoChange} style={styles.input} />
+                            <label style={styles.label}>Ảnh đại diện</label>
+                            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                                {form.avatar
+                                    ? <img src={form.avatar} alt="" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                                    : <div style={{ width: 56, height: 56, borderRadius: "50%", background: C.beige, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#bbb", flexShrink: 0 }}>?</div>
+                                }
+                                <label style={{
+                                    display: "inline-flex", alignItems: "center", gap: 8,
+                                    background: C.beige, border: `1px solid ${C.sand}`, borderRadius: 6,
+                                    padding: "9px 16px", fontSize: 12, fontWeight: 600, color: C.dark,
+                                    cursor: uploadingAvatar ? "not-allowed" : "pointer", opacity: uploadingAvatar ? 0.6 : 1,
+                                }}>
+                                    {uploadingAvatar ? "Đang tải lên..." : "Chọn ảnh mới"}
+                                    <input type="file" accept="image/*" onChange={handleAvatarSelect} disabled={uploadingAvatar} style={{ display: "none" }} />
+                                </label>
+                            </div>
+                            <p style={{ fontSize: 11, color: "#bbb", margin: "6px 0 0" }}>Ảnh sẽ được lưu lại ngay khi chọn, không cần bấm "Lưu thay đổi". JPG/PNG/WebP, tối đa 5MB.</p>
                         </div>
 
                         <button type="submit" disabled={savingInfo}

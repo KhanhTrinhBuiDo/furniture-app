@@ -58,7 +58,14 @@ export default function CleaningServicePage() {
         }
         setSubmitting(true);
         try {
-            await createCleaningRequest(form);
+            await createCleaningRequest({
+                orderCode: form.orderCode,
+                items: form.selectedItems,
+                preferredDate: form.preferredDate,
+                address: form.address,
+                phone: form.phone,
+                notes: form.notes,
+            });
             showToast({ message: "Đăng ký vệ sinh thành công! Chờ Admin xác nhận lịch hẹn.", type: "success" });
             setForm({ orderCode: "", selectedItems: [], preferredDate: "", address: "", phone: "", notes: "" });
             load();

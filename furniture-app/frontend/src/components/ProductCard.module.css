@@ -1,0 +1,304 @@
+.card {
+    background: var(--color-soft);
+    border-radius: var(--radius-md);
+    overflow: visible;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.3s;
+    position: relative;
+}
+
+.card[data-hovered="true"] {
+    box-shadow: var(--shadow-lg);
+}
+
+.cardInner {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+.badges {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.badge {
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.badgeDiscount {
+    background: var(--color-error);
+}
+
+.badgeNew {
+    background: var(--color-success);
+}
+
+/* ─── Wishlist button ────────────────────────────────────────────────────── */
+.wishlistBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.wishlistBtn[data-active="true"] {
+    transform: scale(1.1);
+}
+
+/* ─── Image + hover overlay ──────────────────────────────────────────────── */
+.imageWrap {
+    position: relative;
+    overflow: hidden;
+    height: 220px;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.38);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s;
+}
+
+.overlay[data-visible="true"] {
+    opacity: 1;
+}
+
+.addToCartBtn {
+    background: #fff;
+    color: var(--color-dark);
+    padding: 10px 22px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transform: translateY(8px);
+    transition: transform 0.3s;
+    box-shadow: var(--shadow-md);
+}
+
+.overlay[data-visible="true"] .addToCartBtn {
+    transform: translateY(0);
+}
+
+/* ─── Info ───────────────────────────────────────────────────────────────── */
+.info {
+    padding: 14px 16px 18px;
+}
+
+.category {
+    font-size: 10px;
+    color: #bbb;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 4px;
+}
+
+.name {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: var(--color-dark);
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.priceRow {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.price {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.price[data-sale="true"] {
+    color: var(--color-error);
+}
+
+.priceOld {
+    font-size: 0.8rem;
+    color: #ccc;
+    text-decoration: line-through;
+}
+
+/* ─── Quick-view popup ───────────────────────────────────────────────────── */
+.quickView {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 12px);
+    transform: translateY(-50%);
+    width: 260px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 40px rgba(26, 26, 46, 0.18);
+    border: 1px solid var(--color-sand);
+    padding: 18px;
+    z-index: 20;
+}
+
+.quickViewArrow {
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid var(--color-sand);
+    border-bottom: 1px solid var(--color-sand);
+}
+
+.quickViewCategory {
+    font-size: 10px;
+    color: #bbb;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 6px;
+}
+
+.quickViewName {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--color-dark);
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.quickViewPriceRow {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.quickViewPrice {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.quickViewPrice[data-sale="true"] {
+    color: var(--color-error);
+}
+
+.ratingRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.stars {
+    display: flex;
+    gap: 1px;
+}
+
+.reviewCount {
+    font-size: 11px;
+    color: #999;
+}
+
+.description {
+    font-size: 12.5px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.stockStatus {
+    font-size: 11.5px;
+    margin: 0 0 14px;
+    font-weight: 600;
+}
+
+.stockStatus[data-instock="true"] {
+    color: var(--color-success);
+}
+
+.stockStatus[data-instock="false"] {
+    color: var(--color-error);
+}
+
+.soldCount {
+    color: #bbb;
+    font-weight: 400;
+}
+
+.quickViewActions {
+    display: flex;
+    gap: 8px;
+}
+
+.quickViewBtnPrimary {
+    flex: 1;
+    background: var(--color-dark);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.quickViewBtnPrimary:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.quickViewBtnSecondary {
+    flex: 1;
+    background: none;
+    color: var(--color-dark);
+    border: 1px solid var(--color-sand);
+    border-radius: var(--radius-sm);
+    padding: 9px 0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+}

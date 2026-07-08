@@ -12,18 +12,15 @@ const C = {
   sand: "#D9C9B0",
 };
 
-export default function PaymentReturn() {
-  const { setPage, clearCart, showToast } = useStore();
-  const [status, setStatus] = useState(null);   // null | "loading" | "success" | "failed"
+export default function PaymentReturn({ orderCode }) {
+  const { navigate, clearCart, showToast } = useStore();
+  const [status, setStatus] = useState(null);   // null | "loading" | "success" | "pending" | "failed"
   const [data, setData] = useState(null);
 
   useEffect(() => {
     const check = async () => {
       setStatus("loading");
       try {
-        const params = new URLSearchParams(window.location.search);
-        const orderCode = params.get("vnp_TxnRef");
-
         if (!orderCode) {
           setStatus("failed");
           setData({ message: "Không tìm thấy mã đơn hàng." });
@@ -37,8 +34,8 @@ export default function PaymentReturn() {
           setStatus("success");
           clearCart();                              // clear giỏ hàng
           showToast({ message: "Thanh toán thành công!", type: "success" });
-          // Clean up URL params
-          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (result.success && result.status === "pending") {
+          setStatus("pending");
         } else {
           setStatus("failed");
           showToast({ message: "Thanh toán thất bại. Vui lòng thử lại.", type: "error" });
@@ -51,7 +48,7 @@ export default function PaymentReturn() {
     };
 
     check();
-  }, []);
+  }, [orderCode]);
 
   return (
     <div style={styles.page}>
@@ -99,8 +96,32 @@ export default function PaymentReturn() {
             <p style={styles.note}>Chúng tôi sẽ giao hàng trong vòng 3–5 ngày làm việc.</p>
 
             <div style={styles.btnGroup}>
-              <button style={styles.btnPrimary} onClick={() => setPage("home")}>Về trang chủ</button>
-              <button style={styles.btnSecondary} onClick={() => setPage("shop")}>Tiếp tục mua sắm</button>
+              <button style={styles.btnPrimary} onClick={() => navigate("home", { orderCode: null })}>Về trang chủ</button>
+              <button style={styles.btnSecondary} onClick={() => navigate("shop", { orderCode: null })}>Tiếp tục mua sắm</button>
+            </div>
+          </>
+        )}
+
+        {/* Pending — đơn hàng đã tạo nhưng thanh toán chưa được xác nhận xong */}
+        {status === "pending" && (
+          <>
+            <div style={{ ...styles.iconCircle, background: "#FEF9EC", color: "#D4A843" }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" />
+              </svg>
+            </div>
+            <h1 style={styles.title}>Đang chờ xác nhận thanh toán</h1>
+            <p style={{ ...styles.message, color: "#D4A843" }}>
+              Đơn hàng đã được ghi nhận, hệ thống đang chờ xác nhận từ cổng thanh toán.
+            </p>
+            <div style={styles.infoBox}>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.7, margin: 0 }}>
+                Bạn có thể theo dõi trạng thái đơn hàng tại mục "Đơn hàng của tôi". Trang sẽ tự cập nhật khi thanh toán được xác nhận.
+              </p>
+            </div>
+            <div style={styles.btnGroup}>
+              <button style={styles.btnPrimary} onClick={() => navigate("orders", { orderCode: null })}>Xem đơn hàng</button>
+              <button style={styles.btnSecondary} onClick={() => navigate("home", { orderCode: null })}>Trang chủ</button>
             </div>
           </>
         )}
@@ -125,8 +146,8 @@ export default function PaymentReturn() {
             </div>
 
             <div style={styles.btnGroup}>
-              <button style={styles.btnPrimary} onClick={() => setPage("cart")}>Quay lại giỏ hàng</button>
-              <button style={styles.btnSecondary} onClick={() => setPage("home")}>Trang chủ</button>
+              <button style={styles.btnPrimary} onClick={() => navigate("cart", { orderCode: null })}>Quay lại giỏ hàng</button>
+              <button style={styles.btnSecondary} onClick={() => navigate("home", { orderCode: null })}>Trang chủ</button>
             </div>
           </>
         )}

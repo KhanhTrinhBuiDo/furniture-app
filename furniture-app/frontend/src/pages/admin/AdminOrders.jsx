@@ -31,6 +31,7 @@ export default function AdminOrders() {
     useEffect(() => { load(); }, [load]);
 
     const updateStatus = async (orderId, status) => {
+        if (!status) return;
         setUpdating(orderId);
         await fetch(`${API}/orders/${orderId}/status`, {
             method: "PUT", credentials: "include",
@@ -68,10 +69,10 @@ export default function AdminOrders() {
                 ))}
             </div>
 
-            {/* Table */}
+            {/* Table — overflowX auto để cuộn ngang thay vì cắt mất nội dung */}
             {loading ? <p style={{ color: "#bbb", fontSize: 14 }}>Đang tải...</p> : (
-                <div style={{ background: "#fff", borderRadius: 10, border: `1px solid ${C.sand}`, overflow: "hidden" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: "'Poppins', sans-serif" }}>
+                <div style={{ background: "#fff", borderRadius: 10, border: `1px solid ${C.sand}`, overflowX: "auto" }}>
+                    <table style={{ width: "100%", minWidth: 920, borderCollapse: "collapse", fontSize: 13, fontFamily: "'Poppins', sans-serif" }}>
                         <thead>
                             <tr style={{ background: C.beige }}>
                                 {["Mã đơn", "Khách hàng", "Sản phẩm", "Tổng tiền", "Thanh toán", "Trạng thái", "Ngày tạo", "Thao tác"].map(h => (
@@ -84,38 +85,51 @@ export default function AdminOrders() {
                                 <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "#bbb" }}>Không có đơn hàng nào</td></tr>
                             ) : orders.map((o, i) => {
                                 const cfg = STATUS_CFG[o.status] || {};
+                                const isUpdating = updating === o._id;
                                 return (
                                     <tr key={o._id} style={{ borderTop: `1px solid ${C.beige}`, background: i % 2 === 0 ? "#fff" : "#FDFAF7" }}>
-                                        <td style={{ padding: "12px 16px", fontWeight: 600, color: C.dark }}>{o.orderCode}</td>
-                                        <td style={{ padding: "12px 16px" }}>
+                                        <td style={{ padding: "12px 16px", fontWeight: 600, color: C.dark, whiteSpace: "nowrap" }}>{o.orderCode}</td>
+                                        <td style={{ padding: "12px 16px", minWidth: 160 }}>
                                             <p style={{ margin: 0, fontWeight: 500, color: C.dark }}>{o.shippingAddress?.fullName || o.user?.fullName || "—"}</p>
                                             <p style={{ margin: 0, fontSize: 11, color: "#bbb" }}>{o.user?.email || ""}</p>
                                         </td>
-                                        <td style={{ padding: "12px 16px", color: "#666" }}>{o.items.length} sản phẩm</td>
-                                        <td style={{ padding: "12px 16px", fontWeight: 600, color: C.wood }}>{fmt(o.total)}</td>
+                                        <td style={{ padding: "12px 16px", color: "#666", whiteSpace: "nowrap" }}>{o.items.length} sản phẩm</td>
+                                        <td style={{ padding: "12px 16px", fontWeight: 600, color: C.wood, whiteSpace: "nowrap" }}>{fmt(o.total)}</td>
                                         <td style={{ padding: "12px 16px" }}>
-                                            <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 12, background: o.paymentStatus === "paid" ? "#EEF4EA" : "#FEF9EC", color: o.paymentStatus === "paid" ? C.green : C.gold, fontWeight: 600 }}>
+                                            <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 12, background: o.paymentStatus === "paid" ? "#EEF4EA" : "#FEF9EC", color: o.paymentStatus === "paid" ? C.green : C.gold, fontWeight: 600, whiteSpace: "nowrap" }}>
                                                 {o.paymentStatus === "paid" ? "Đã TT" : "Chưa TT"}
                                             </span>
                                         </td>
                                         <td style={{ padding: "12px 16px" }}>
-                                            <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: cfg.bg, color: cfg.color, fontWeight: 600 }}>
+                                            <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: cfg.bg, color: cfg.color, fontWeight: 600, whiteSpace: "nowrap" }}>
                                                 {cfg.label}
                                             </span>
                                         </td>
-                                        <td style={{ padding: "12px 16px", color: "#999", fontSize: 12 }}>
+                                        <td style={{ padding: "12px 16px", color: "#999", fontSize: 12, whiteSpace: "nowrap" }}>
                                             {new Date(o.createdAt).toLocaleDateString("vi-VN")}
                                         </td>
+                                        {/* ── Thao tác: gộp thành 1 dropdown + nút Chi tiết, đủ chỗ hiển thị ── */}
                                         <td style={{ padding: "12px 16px" }}>
-                                            <div style={{ display: "flex", gap: 6 }}>
+                                            <div style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 180 }}>
                                                 <button onClick={() => setDetail(o)} style={S.actionBtn}>Chi tiết</button>
-                                                {(cfg.next || []).map(next => (
-                                                    <button key={next} disabled={updating === o._id}
-                                                        onClick={() => updateStatus(o._id, next)}
-                                                        style={{ ...S.actionBtn, background: STATUS_CFG[next]?.bg, color: STATUS_CFG[next]?.color, borderColor: STATUS_CFG[next]?.color, opacity: updating === o._id ? 0.6 : 1 }}>
-                                                        → {STATUS_CFG[next]?.label}
-                                                    </button>
-                                                ))}
+                                                {(cfg.next || []).length > 0 && (
+                                                    <select
+                                                        value=""
+                                                        disabled={isUpdating}
+                                                        onChange={e => updateStatus(o._id, e.target.value)}
+                                                        style={{
+                                                            fontSize: 11, padding: "5px 8px", borderRadius: 4,
+                                                            border: `1px solid ${C.wood}`, background: "#fff", color: C.wood,
+                                                            cursor: isUpdating ? "not-allowed" : "pointer", fontFamily: "'Poppins', sans-serif",
+                                                            fontWeight: 600, opacity: isUpdating ? 0.6 : 1, maxWidth: 150,
+                                                        }}
+                                                    >
+                                                        <option value="" disabled>{isUpdating ? "Đang cập nhật..." : "Chuyển trạng thái"}</option>
+                                                        {cfg.next.map(next => (
+                                                            <option key={next} value={next}>→ {STATUS_CFG[next]?.label}</option>
+                                                        ))}
+                                                    </select>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -134,6 +148,22 @@ export default function AdminOrders() {
                         <button onClick={() => setDetail(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "#bbb" }}>✕</button>
                     </div>
                     <div style={{ padding: 24 }}>
+                        {/* Trạng thái hiện tại + chuyển nhanh ngay trong panel chi tiết */}
+                        <Section title="Trạng thái">
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                                <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 12, background: STATUS_CFG[detail.status]?.bg, color: STATUS_CFG[detail.status]?.color, fontWeight: 600 }}>
+                                    {STATUS_CFG[detail.status]?.label}
+                                </span>
+                                {(STATUS_CFG[detail.status]?.next || []).map(next => (
+                                    <button key={next} disabled={updating === detail._id}
+                                        onClick={() => updateStatus(detail._id, next)}
+                                        style={{ fontSize: 11, padding: "5px 12px", borderRadius: 6, border: `1px solid ${STATUS_CFG[next]?.color}`, background: STATUS_CFG[next]?.bg, color: STATUS_CFG[next]?.color, cursor: "pointer", fontWeight: 600 }}>
+                                        → {STATUS_CFG[next]?.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </Section>
+
                         {/* Items */}
                         <Section title="Sản phẩm">
                             {detail.items.map((item, i) => (
@@ -198,6 +228,6 @@ function Section({ title, children }) {
 
 const S = {
     exportBtn: { background: "#4A2C1A", color: "#fff", border: "none", borderRadius: 6, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" },
-    actionBtn: { fontSize: 11, padding: "4px 10px", borderRadius: 4, border: `1px solid ${C.sand}`, background: "none", cursor: "pointer", color: "#666", fontFamily: "'Poppins', sans-serif", whiteSpace: "nowrap" },
+    actionBtn: { fontSize: 11, padding: "5px 10px", borderRadius: 4, border: `1px solid ${C.sand}`, background: "none", cursor: "pointer", color: "#666", fontFamily: "'Poppins', sans-serif", whiteSpace: "nowrap" },
     infoText: { fontSize: 13, color: "#666", margin: "0 0 4px", lineHeight: 1.6 },
 };

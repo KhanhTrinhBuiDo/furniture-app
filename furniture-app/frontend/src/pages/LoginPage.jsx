@@ -86,7 +86,7 @@ export default function LoginPage() {
                 <img src={HERO_IMG} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.8rem,4vw,2.6rem)", fontWeight: 700, color: C.coffee, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                        Welcome to Amore Home
+                        Chào mừng đến với Amore Home
                     </h1>
                 </div>
             </div>
@@ -95,7 +95,7 @@ export default function LoginPage() {
             <div style={{ display: "flex", justifyContent: "center", padding: "40px 20px 60px" }}>
                 <div style={{ background: C.card, borderRadius: 16, padding: "36px 40px", width: "100%", maxWidth: 480, boxShadow: "0 8px 48px rgba(74,44,26,0.12)" }}>
                     <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", fontWeight: 700, color: C.dark, textAlign: "center", margin: "0 0 28px" }}>
-                        Sign in
+                        Đăng nhập
                     </h2>
 
                     {errors.general && (
@@ -112,7 +112,7 @@ export default function LoginPage() {
                                 onKeyDown={e => e.key === "Enter" && handleSubmit(e)} />
                         </Field>
 
-                        <Field label="Password" error={errors.password}>
+                        <Field label="Mật khẩu" error={errors.password}>
                             <div style={{ position: "relative" }}>
                                 <Input type={showPwd ? "text" : "password"} placeholder="••••••••••••"
                                     value={form.password} onChange={set("password")}
@@ -129,11 +129,11 @@ export default function LoginPage() {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.dark, cursor: "pointer" }}>
                                 <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: C.wood }} />
-                                Save account
+                                Ghi nhớ đăng nhập
                             </label>
                             <button type="button" onClick={() => navigate("forgot-password")}
                                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, color: C.coffee, fontFamily: "'Poppins', sans-serif" }}>
-                                Forget password?
+                                Quên mật khẩu?
                             </button>
                         </div>
 
@@ -141,14 +141,14 @@ export default function LoginPage() {
                             style={{ background: C.coffee, color: "#fff", border: "none", borderRadius: 8, padding: "14px 0", fontSize: "1rem", fontWeight: 700, fontFamily: "'Playfair Display', serif", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, transition: "background 0.2s" }}
                             onMouseEnter={e => !loading && (e.currentTarget.style.background = C.dark)}
                             onMouseLeave={e => !loading && (e.currentTarget.style.background = C.coffee)}>
-                            {loading ? "Đang đăng nhập..." : "Sign in"}
+                            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                         </button>
 
                         <p style={{ textAlign: "center", fontSize: 13, color: C.dark, margin: 0 }}>
-                            Don't have an account?{" "}
+                            Chưa có tài khoản?{" "}
                             <button type="button" onClick={() => navigate("register")}
                                 style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: C.coffee, fontFamily: "'Poppins', sans-serif", fontSize: 13 }}>
-                                Register now!
+                                Đăng ký ngay!
                             </button>
                         </p>
 
@@ -163,7 +163,7 @@ export default function LoginPage() {
                             onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
                             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
                             <GoogleIcon />
-                            Sign in with Google
+                            Đăng nhập với Google
                         </button>
                     </div>
                 </div>

@@ -41,7 +41,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* ── Stat cards ───────────────────────────────────────────────────── */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 32 }}>
+            <div className="admin-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 32 }}>
                 {[
                     { label: "Doanh thu tháng này", value: fmt(stats.revenue.thisMonth), sub: `${stats.revenue.growth >= 0 ? "+" : ""}${stats.revenue.growth}% so với tháng trước`, subColor: stats.revenue.growth >= 0 ? C.green : C.error, icon: "💰", bg: "#EEF4EA" },
                     { label: "Đơn hàng tháng này", value: stats.orders.thisMonth, sub: `${stats.orders.growth >= 0 ? "+" : ""}${stats.orders.growth}% so với tháng trước`, subColor: stats.orders.growth >= 0 ? C.green : C.error, icon: "📦", bg: "#EBF2FE" },
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* ── Charts row ───────────────────────────────────────────────────── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, marginBottom: 32 }}>
+            <div className="admin-chart-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, marginBottom: 32 }}>
 
                 {/* Revenue / Orders bar chart */}
                 <div style={{ background: "#fff", borderRadius: 10, padding: 24, border: `1px solid ${C.sand}` }}>
@@ -79,22 +79,36 @@ export default function AdminDashboard() {
                     {revenueByDay.length === 0 ? (
                         <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: "#ccc", fontSize: 14 }}>Chưa có dữ liệu</div>
                     ) : (
-                        <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 180, overflowX: "auto" }}>
-                            {revenueByDay.map((d) => {
-                                const val = tab === "revenue" ? d.revenue : d.orders;
-                                const maxVal = tab === "revenue" ? maxRev : Math.max(...revenueByDay.map(x => x.orders), 1);
-                                const h = Math.max(4, (val / maxVal) * 160);
-                                return (
-                                    <div key={d._id} style={{ flex: 1, minWidth: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}
-                                        title={`${d._id}: ${tab === "revenue" ? fmt(d.revenue) : d.orders + " đơn"}`}>
-                                        <div style={{ width: "100%", height: h, background: C.wood, borderRadius: "3px 3px 0 0", transition: "height 0.3s", opacity: 0.85 }} />
-                                        <span style={{ fontSize: 8, color: "#ccc", transform: "rotate(-45deg)", transformOrigin: "top", whiteSpace: "nowrap" }}>
-                                            {d._id.slice(5)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        <>
+                            {/* Vùng cột — chiều cao cố định, không lẫn với nhãn để tránh đè lên nhau */}
+                            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 160, overflowX: "auto", overflowY: "hidden" }}>
+                                {revenueByDay.map((d) => {
+                                    const val = tab === "revenue" ? d.revenue : d.orders;
+                                    const maxVal = tab === "revenue" ? maxRev : Math.max(...revenueByDay.map(x => x.orders), 1);
+                                    const h = Math.max(4, Math.round((val / maxVal) * 150));
+                                    return (
+                                        <div key={d._id} style={{ flex: "1 0 16px", minWidth: 16, height: "100%", display: "flex", alignItems: "flex-end" }}
+                                            title={`${d._id}: ${tab === "revenue" ? fmt(d.revenue) : d.orders + " đơn"}`}>
+                                            <div style={{ width: "100%", height: `${h}px`, background: C.wood, borderRadius: "3px 3px 0 0", opacity: 0.85 }} />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {/* Nhãn ngày — hàng riêng bên dưới, không xoay để không chồng lên cột phía trên.
+                                Chỉ hiện khoảng 8-10 nhãn để tránh chữ chen chúc khi có nhiều ngày. */}
+                            <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                                {revenueByDay.map((d, i) => {
+                                    const step = Math.max(1, Math.ceil(revenueByDay.length / 8));
+                                    return (
+                                        <div key={d._id} style={{ flex: "1 0 16px", minWidth: 16, textAlign: "center" }}>
+                                            {i % step === 0 && (
+                                                <span style={{ fontSize: 9, color: "#bbb", whiteSpace: "nowrap" }}>{d._id.slice(5)}</span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </div>
 
@@ -127,7 +141,7 @@ export default function AdminDashboard() {
                     <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem", color: C.dark, margin: 0 }}>Sản phẩm bán chạy</h3>
                     <button onClick={() => navigate("admin-products")} style={{ fontSize: 12, color: C.wood, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Xem tất cả →</button>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+                <div className="admin-top-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
                     {topProducts.length === 0
                         ? <p style={{ color: "#ccc", fontSize: 13, gridColumn: "1/-1" }}>Chưa có dữ liệu bán hàng</p>
                         : topProducts.map((p, i) => (
@@ -146,6 +160,19 @@ export default function AdminDashboard() {
                     }
                 </div>
             </div>
+
+            {/* Responsive — mục 10: lưới thống kê/biểu đồ cố định cột gây tràn trên mobile/tablet */}
+            <style>{`
+                @media (max-width: 1100px) {
+                    .admin-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                    .admin-chart-grid { grid-template-columns: 1fr !important; }
+                    .admin-top-grid { grid-template-columns: repeat(3, 1fr) !important; }
+                }
+                @media (max-width: 640px) {
+                    .admin-stat-grid { grid-template-columns: 1fr !important; }
+                    .admin-top-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                }
+            `}</style>
         </div>
     );
 }

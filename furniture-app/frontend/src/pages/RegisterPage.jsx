@@ -105,7 +105,7 @@ export default function RegisterPage() {
                         fontWeight: 700, color: "#6D3914",
                         letterSpacing: "0.05em", textTransform: "uppercase",
                     }}>
-                        Welcome to Amore Home
+                        Chào mừng đến với Amore Home
                     </h1>
                 </div>
             </div>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
                         fontSize: "1.5rem", fontWeight: 700, color: C.dark,
                         textAlign: "center", marginBottom: 28,
                     }}>
-                        Register
+                        Đăng ký
                     </h2>
 
                     {errors.general && (
@@ -140,17 +140,17 @@ export default function RegisterPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
                         {/* Full name */}
-                        <Field label="Fullname" error={errors.fullName}>
+                        <Field label="Họ và tên" error={errors.fullName}>
                             <Input placeholder="Nguyen Thi Hai Linh" value={form.fullName} onChange={set("fullName")} hasError={!!errors.fullName} disabled={loading} />
                         </Field>
 
                         {/* Phone */}
-                        <Field label="Phone number" error={errors.phone}>
+                        <Field label="Số điện thoại" error={errors.phone}>
                             <Input type="tel" placeholder="0909 355 355" value={form.phone} onChange={set("phone")} hasError={!!errors.phone} disabled={loading} />
                         </Field>
 
                         {/* Date of birth */}
-                        <Field label="Date of birth" error={errors.dob}>
+                        <Field label="Ngày sinh" error={errors.dob}>
                             <Input type="date" value={form.dob} onChange={set("dob")} hasError={!!errors.dob} disabled={loading} />
                         </Field>
 
@@ -160,7 +160,7 @@ export default function RegisterPage() {
                         </Field>
 
                         {/* Password */}
-                        <Field label="Password" error={errors.password}>
+                        <Field label="Mật khẩu" error={errors.password}>
                             <div style={{ position: "relative" }}>
                                 <Input
                                     type={showPwd ? "text" : "password"}
@@ -191,7 +191,7 @@ export default function RegisterPage() {
                         </Field>
 
                         {/* Confirm password */}
-                        <Field label="Confirm Password" error={errors.confirmPassword}>
+                        <Field label="Xác nhận mật khẩu" error={errors.confirmPassword}>
                             <div style={{ position: "relative" }}>
                                 <Input
                                     type={showCpwd ? "text" : "password"}
@@ -222,7 +222,7 @@ export default function RegisterPage() {
                             onMouseEnter={(e) => !loading && (e.currentTarget.style.background = C.dark)}
                             onMouseLeave={(e) => !loading && (e.currentTarget.style.background = C.coffee)}
                         >
-                            {loading ? "Đang đăng ký..." : "Register"}
+                            {loading ? "Đang đăng ký..." : "Đăng ký"}
                         </button>
 
                         {/* Login link */}

@@ -1,0 +1,98 @@
+.toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: var(--radius-md);
+    padding: 14px 20px;
+    min-width: 260px;
+    max-width: 380px;
+    box-shadow: var(--shadow-md);
+    font-family: var(--font-body);
+}
+
+.toastEnter {
+    animation: toastIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.toastExit {
+    animation: toastOut 0.22s ease-in forwards;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(8px) scale(0.97);
+    }
+}
+
+/* ─── Biến thể theo loại toast (success/error/info) ─────────────────────────
+   Dùng data-attribute thay vì tạo 3 class riêng, để dễ mở rộng thêm loại mới
+   mà không cần sửa file CSS lẫn cách gọi className trong component. */
+.toast[data-type="success"] {
+    background: #F0F5EC;
+    border: 1px solid var(--color-success);
+}
+
+.toast[data-type="error"] {
+    background: #FBF0ED;
+    border: 1px solid var(--color-error);
+}
+
+.toast[data-type="info"] {
+    background: var(--color-cream);
+    border: 1px solid #B7957F;
+}
+
+.icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.toast[data-type="success"] .icon {
+    background: var(--color-success);
+}
+
+.toast[data-type="error"] .icon {
+    background: var(--color-error);
+}
+
+.toast[data-type="info"] .icon {
+    background: #B7957F;
+}
+
+.message {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-dark);
+    line-height: 1.5;
+    flex: 1;
+}
