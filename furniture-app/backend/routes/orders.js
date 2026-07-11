@@ -193,10 +193,11 @@ router.get("/", protect, requireAdmin, async (req, res) => {
             orders: orders.map(o => serializeOrder(o, txMap.get(String(o._id)))),
             pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
         });
-    } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
+    } catch (err) {
+        console.error("GET /api/orders (admin) error:", err);
+        res.status(500).json({ message: "Lỗi máy chủ", detail: err.message });
+    }
 });
-
-// ─── Admin: PUT /api/orders/:id/status + tạo Warranty khi Completed ──────────
 router.put("/:id/status", protect, requireAdmin, async (req, res) => {
     try {
         const { status: clientStatus, note } = req.body;
