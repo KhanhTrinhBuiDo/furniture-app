@@ -118,7 +118,7 @@ function Router() {
       );
     }
     return (
-      <ProtectedRoute redirectTo="admin-login" requireRole="admin">
+      <ProtectedRoute redirectTo="admin-login" requireRole="Admin">
         <AdminLayout activePage={page}>
           <AdminPage />
         </AdminLayout>

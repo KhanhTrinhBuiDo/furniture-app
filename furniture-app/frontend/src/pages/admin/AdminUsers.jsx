@@ -4,8 +4,8 @@ const C = { dark: "#4A2C1A", wood: "#8B5E3C", sand: "#D9C9B0", beige: "#F0E8DC",
 const API = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin`;
 
 const ROLE_CFG = {
-    user: { label: "User", color: "#4285F4", bg: "#EBF2FE" },
-    admin: { label: "Admin", color: C.dark, bg: C.beige },
+    User: { label: "User", color: "#4285F4", bg: "#EBF2FE" },
+    Admin: { label: "Admin", color: C.dark, bg: C.beige },
 };
 
 export default function AdminUsers() {
@@ -70,7 +70,7 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Role filter */}
-                {["", "user", "admin"].map(r => (
+                {["", "User", "Admin"].map(r => (
                     <button key={r} onClick={() => setRoleTab(r)}
                         style={{ padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif", transition: "all 0.2s", background: roleTab === r ? C.dark : "#fff", color: roleTab === r ? "#fff" : "#888", border: `1px solid ${roleTab === r ? C.dark : C.sand}` }}>
                         {r === "" ? "Tất cả" : ROLE_CFG[r]?.label || r}
@@ -93,7 +93,7 @@ export default function AdminUsers() {
                             {users.length === 0 ? (
                                 <tr><td colSpan={7} style={{ padding: 40, textAlign: "center", color: "#bbb" }}>Không có người dùng nào</td></tr>
                             ) : users.map((u, i) => {
-                                const rc = ROLE_CFG[u.role] || ROLE_CFG.user;
+                                const rc = ROLE_CFG[u.role] || ROLE_CFG.User;
                                 return (
                                     <tr key={u._id} style={{ borderTop: `1px solid ${C.beige}`, background: i % 2 === 0 ? "#fff" : "#FDFAF7" }}>
                                         {/* Avatar + name */}
@@ -129,8 +129,8 @@ export default function AdminUsers() {
                                         <td style={{ padding: "12px 16px" }}>
                                             <select value={u.role} onChange={e => update(u._id, { role: e.target.value })}
                                                 style={{ fontSize: 11, padding: "4px 8px", borderRadius: 12, border: "none", cursor: "pointer", fontWeight: 600, background: rc.bg, color: rc.color, fontFamily: "'Poppins', sans-serif", outline: "none" }}>
-                                                <option value="user">User</option>
-                                                <option value="admin">Admin</option>
+                                                <option value="User">User</option>
+                                                <option value="Admin">Admin</option>
                                             </select>
                                         </td>
 
