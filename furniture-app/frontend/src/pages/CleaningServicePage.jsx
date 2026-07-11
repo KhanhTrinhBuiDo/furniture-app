@@ -45,7 +45,7 @@ export default function CleaningServicePage() {
                 ...f,
                 selectedItems: exists
                     ? f.selectedItems.filter(i => i.name !== item.name)
-                    : [...f.selectedItems, { name: item.name, img: item.img, product: item.product }],
+                    : [...f.selectedItems, { name: item.name, img: item.img, productId: item.productId }],
             };
         });
     };
