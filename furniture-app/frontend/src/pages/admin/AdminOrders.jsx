@@ -5,11 +5,11 @@ const API = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api`;
 const fmt = (n) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
 
 const STATUS_CFG = {
-    pending: { label: "Chờ xác nhận", color: C.gold, bg: "#FEF9EC", next: ["confirmed", "cancelled"] },
-    confirmed: { label: "Đã xác nhận", color: "#4285F4", bg: "#EBF2FE", next: ["shipping", "cancelled"] },
-    shipping: { label: "Đang giao", color: C.wood, bg: "#F5EDE3", next: ["completed"] },
-    completed: { label: "Hoàn tất", color: C.green, bg: "#EEF4EA", next: [] },
-    cancelled: { label: "Đã huỷ", color: C.error, bg: "#FBF0ED", next: [] },
+    Pending: { label: "Chờ xác nhận", color: C.gold, bg: "#FEF9EC", next: ["Confirmed", "Cancelled"] },
+    Confirmed: { label: "Đã xác nhận", color: "#4285F4", bg: "#EBF2FE", next: ["Shipping", "Cancelled"] },
+    Shipping: { label: "Đang giao", color: C.wood, bg: "#F5EDE3", next: ["Completed"] },
+    Completed: { label: "Hoàn tất", color: C.green, bg: "#EEF4EA", next: [] },
+    Cancelled: { label: "Đã huỷ", color: C.error, bg: "#FBF0ED", next: [] },
 };
 
 export default function AdminOrders() {
