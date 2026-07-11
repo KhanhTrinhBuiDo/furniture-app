@@ -12,6 +12,7 @@ export function sanitizeUser(userDoc) {
         phone: u.phone || "",
         role: u.role,
         avatar: u.avatar || "",
+        dob: u.dob || null,
         isActive: u.is_active !== false,
         addresses: u.addresses || [],
         styleIds: u.style_ids || [],

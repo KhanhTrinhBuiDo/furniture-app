@@ -44,12 +44,12 @@ export async function releaseStock(items) {
     if (ops.length) await Product.bulkWrite(ops);
 }
 
-/** Chốt bán khi thanh toán thành công — trừ thật actual_stock, đồng thời nhả locked_stock. */
+/** Chốt bán khi thanh toán thành công — trừ thật actual_stock, đồng thời nhả locked_stock, tăng sold. */
 export async function commitStock(items) {
     const ops = items.map(({ product_id, quantity }) => ({
         updateOne: {
             filter: { _id: product_id },
-            update: { $inc: { actual_stock: -quantity, locked_stock: -quantity } },
+            update: { $inc: { actual_stock: -quantity, locked_stock: -quantity, sold: quantity } },
         },
     }));
     if (ops.length) await Product.bulkWrite(ops);

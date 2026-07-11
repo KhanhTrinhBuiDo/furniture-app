@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
   // xoá an toàn nếu không cần — không ảnh hưởng field nào khác.
   avatar: { type: String, default: "" },
   is_active: { type: Boolean, default: true },
+  dob: { type: Date, default: null },   // ProfilePage.jsx/RegisterPage.jsx đã có sẵn field ngày sinh
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });

@@ -5,6 +5,7 @@
 
 export function checkVoucherValidity(voucher, orderTotal) {
     if (!voucher) return { ok: false, msg: "Mã voucher không tồn tại" };
+    if (voucher.is_active === false) return { ok: false, msg: "Mã voucher đã bị vô hiệu hoá" };
     if (new Date(voucher.expiry_date) < new Date()) return { ok: false, msg: "Mã voucher đã hết hạn" };
     const remaining = voucher.usage_limit - voucher.used_count - voucher.locked_count;
     if (remaining <= 0) return { ok: false, msg: "Mã voucher đã hết lượt sử dụng" };
@@ -37,4 +38,26 @@ export async function releaseVoucher(VoucherModel, voucherId) {
 
 export async function commitVoucher(VoucherModel, voucherId) {
     await VoucherModel.findByIdAndUpdate(voucherId, { $inc: { locked_count: -1, used_count: 1 } });
+}
+
+// ─── Serialize cho AdminVouchers.jsx (giữ đúng tên field cũ: type/value/... ─
+export function serializeVoucher(v) {
+    const o = typeof v.toObject === "function" ? v.toObject() : v;
+    const cond = o.conditions || {};
+    return {
+        _id: o._id,
+        code: o.code,
+        description: o.description || "",
+        type: o.discount_type === "PERCENTAGE" ? "percent" : "fixed",
+        value: o.discount_type === "PERCENTAGE" ? (cond.percent ?? 0) : (cond.amount ?? 0),
+        minOrderValue: cond.minOrderValue ?? 0,
+        maxDiscount: cond.maxDiscount ?? null,
+        usageLimit: o.usage_limit,
+        usedCount: o.used_count,
+        lockedCount: o.locked_count,
+        startDate: o.start_date,
+        endDate: o.expiry_date,
+        isActive: o.is_active !== false,
+        createdAt: o.created_at,
+    };
 }

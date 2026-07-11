@@ -3,17 +3,40 @@ import ServiceTicket from "../models/ServiceTicket.js";
 import Voucher from "../models/Voucher.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import { uploadMultiple, handleUploadError } from "../middleware/upload-cloudinary.js";
-import { genVoucherCode, pushLog } from "../utils/serviceTicketHelpers.js";
+import { genVoucherCode, pushLog, packMeta, unpackMeta } from "../utils/serviceTicketHelpers.js";
 
 const router = express.Router();
 
 // GHI CHÚ QUAN TRỌNG: TradeInRequest cũ có các field productName/category/
-// condition/contactPhone/contactAddress/description riêng. ServiceTicket
-// (model chung mới) không có các field này — chỉ có product_id (ref catalog,
-// KHÔNG bắt buộc với TradeIn vì món đồ cũ của khách có thể không thuộc catalog
-// Amore Home) và error_description (text tự do). Toàn bộ thông tin mô tả được
-// dồn vào error_description (mô tả sản phẩm) + log[0].note (liên hệ). Xem
-// thêm ghi chú trong models/ServiceTicket.js về việc nới lỏng product_id/order_id.
+// condition/description/contactPhone/contactAddress riêng. ServiceTicket
+// (model chung mới) không có — chỉ có product_id (không bắt buộc với TradeIn,
+// vì món đồ cũ của khách thường không thuộc catalog Amore Home) và
+// error_description (text tự do). Toàn bộ field structured được đóng gói
+// JSON vào error_description (packMeta/unpackMeta) rồi giải mã lại khi trả
+// response — TradeInPage.jsx/AdminTradeIn.jsx đọc y hệt như cũ, không cần sửa.
+
+function serialize(t) {
+    const o = typeof t.toObject === "function" ? t.toObject() : t;
+    const meta = unpackMeta(o.error_description);
+    return {
+        _id: o._id,
+        user: (o.user_id && typeof o.user_id === "object")
+            ? { _id: o.user_id._id, fullName: o.user_id.full_name, email: o.user_id.email, phone: o.user_id.phone }
+            : o.user_id,
+        productName: meta.productName || "",
+        category: meta.category || "",
+        condition: meta.condition || "",
+        description: meta.description || "",
+        contactPhone: meta.contactPhone || "",
+        contactAddress: meta.contactAddress || "",
+        images: o.images || [],
+        status: o.status,
+        appraisedValue: o.valuation_price,
+        adminNote: meta.adminNote || o.rejection_note || "",
+        voucherCode: (o.voucher_id && typeof o.voucher_id === "object") ? o.voucher_id.code : undefined,
+        createdAt: o.created_at,
+    };
+}
 
 // ─── POST /api/tradein — Khách gửi yêu cầu thu cũ đổi mới (kèm ảnh) ──────────
 router.post("/", protect, uploadMultiple, handleUploadError, async (req, res) => {
@@ -29,20 +52,25 @@ router.post("/", protect, uploadMultiple, handleUploadError, async (req, res) =>
             return res.status(400).json({ message: "Vui lòng gửi ít nhất 1 ảnh sản phẩm cũ" });
         }
 
-        const CONDITION_LABELS = { like_new: "Như mới", good: "Tốt", fair: "Khá", poor: "Cũ, có hư hỏng" };
-        const errorDescription = `${productName} — Danh mục: ${category.toUpperCase()} — Tình trạng: ${CONDITION_LABELS[condition] || condition}.${description ? " " + description : ""}`;
-        const contactNote = `SĐT: ${contactPhone}${contactAddress ? ` · Địa chỉ: ${contactAddress}` : ""}`;
+        const meta = packMeta({
+            productName,
+            category: category.toUpperCase(),
+            description: description || "",
+            condition,
+            contactPhone,
+            contactAddress: contactAddress || "",
+        });
 
         const ticket = await ServiceTicket.create({
             user_id: req.user._id,
             type: "TradeIn",
             images,
-            error_description: errorDescription,
-            status: "Submitted",
-            log: [{ status: "Submitted", note: `Khách gửi yêu cầu thu cũ đổi mới. ${contactNote}` }],
+            error_description: meta,
+            status: "pending",
+            log: [{ status: "pending", note: "Khách hàng gửi yêu cầu thu cũ đổi mới" }],
         });
 
-        res.status(201).json({ success: true, request: ticket });
+        res.status(201).json({ success: true, request: serialize(ticket) });
     } catch (err) {
         console.error("Create trade-in error:", err.message);
         res.status(500).json({ message: err.message || "Lỗi máy chủ" });
@@ -54,8 +82,8 @@ router.get("/my", protect, async (req, res) => {
     try {
         const requests = await ServiceTicket.find({ user_id: req.user._id, type: "TradeIn" })
             .sort({ created_at: -1 })
-            .populate("voucher_id", "code discount_type conditions expiry_date");
-        res.json({ success: true, requests });
+            .populate("voucher_id", "code");
+        res.json({ success: true, requests: requests.map(serialize) });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
@@ -66,12 +94,12 @@ router.post("/:id/cancel", protect, async (req, res) => {
     try {
         const ticket = await ServiceTicket.findOne({ _id: req.params.id, user_id: req.user._id, type: "TradeIn" });
         if (!ticket) return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
-        if (ticket.status !== "Submitted") return res.status(400).json({ message: "Không thể huỷ ở trạng thái này" });
+        if (ticket.status !== "pending") return res.status(400).json({ message: "Không thể huỷ ở trạng thái này" });
 
-        pushLog(ticket, "Cancelled", "Khách hàng huỷ yêu cầu");
+        pushLog(ticket, "cancelled", "Khách hàng huỷ yêu cầu");
         await ticket.save();
 
-        res.json({ success: true, request: ticket });
+        res.json({ success: true, request: serialize(ticket) });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
@@ -97,7 +125,11 @@ router.get("/", protect, requireAdmin, async (req, res) => {
             ServiceTicket.countDocuments(filter),
         ]);
 
-        res.json({ success: true, requests, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+        res.json({
+            success: true,
+            requests: requests.map(serialize),
+            pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+        });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
@@ -114,16 +146,18 @@ router.put("/:id/appraise", protect, requireAdmin, async (req, res) => {
 
         const ticket = await ServiceTicket.findOne({ _id: req.params.id, type: "TradeIn" });
         if (!ticket) return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
-        if (!["Submitted"].includes(ticket.status)) {
+        if (ticket.status !== "pending") {
             return res.status(400).json({ message: "Yêu cầu này đã được xử lý" });
         }
 
         const value = Number(appraisedValue);
         const expiry_date = new Date();
         expiry_date.setDate(expiry_date.getDate() + Number(voucherValidDays));
+        const meta = unpackMeta(ticket.error_description);
 
         const voucher = await Voucher.create({
             code: genVoucherCode(),
+            description: `Ưu đãi thu cũ đổi mới — "${meta.productName || ""}"`,
             discount_type: "FIXED_AMOUNT",
             conditions: { amount: value },
             usage_limit: 1,
@@ -132,10 +166,14 @@ router.put("/:id/appraise", protect, requireAdmin, async (req, res) => {
 
         ticket.valuation_price = value;
         ticket.voucher_id = voucher._id;
-        pushLog(ticket, "VoucherSent", `${adminNote ? adminNote + " — " : ""}Định giá ${value.toLocaleString("vi-VN")}₫ — Voucher: ${voucher.code}`);
+        if (adminNote !== undefined) {
+            meta.adminNote = adminNote;
+            ticket.error_description = packMeta(meta);
+        }
+        pushLog(ticket, "voucher_sent", `Định giá ${value.toLocaleString("vi-VN")}₫ — Voucher: ${voucher.code}`);
         await ticket.save();
 
-        res.json({ success: true, request: ticket, voucher });
+        res.json({ success: true, request: serialize(ticket), voucher });
     } catch (err) {
         console.error("Appraise trade-in error:", err.message);
         res.status(500).json({ message: err.message || "Lỗi máy chủ" });
@@ -148,13 +186,13 @@ router.put("/:id/reject", protect, requireAdmin, async (req, res) => {
         const { adminNote } = req.body;
         const ticket = await ServiceTicket.findOne({ _id: req.params.id, type: "TradeIn" });
         if (!ticket) return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
-        if (ticket.status !== "Submitted") return res.status(400).json({ message: "Yêu cầu này đã được xử lý" });
+        if (ticket.status !== "pending") return res.status(400).json({ message: "Yêu cầu này đã được xử lý" });
 
         ticket.rejection_note = adminNote || "";
-        pushLog(ticket, "Rejected", adminNote || "");
+        pushLog(ticket, "rejected", adminNote || "");
         await ticket.save();
 
-        res.json({ success: true, request: ticket });
+        res.json({ success: true, request: serialize(ticket) });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }

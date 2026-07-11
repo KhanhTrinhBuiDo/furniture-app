@@ -7,8 +7,14 @@ const voucherSchema = new mongoose.Schema({
   usage_limit: { type: Number, required: true, min: 1 },
   used_count: { type: Number, default: 0, min: 0 },
   locked_count: { type: Number, default: 0, min: 0 },
-  expiry_date: { type: Date, required: true }
-}, { 
+  expiry_date: { type: Date, required: true },
+  // ─── Bổ sung so với tài liệu schema gốc (đánh dấu rõ) ──────────────────────
+  // AdminVouchers.jsx đã build sẵn form quanh mô tả, ngày bắt đầu hiệu lực,
+  // và cờ bật/tắt thủ công độc lập với hạn dùng — bảng mô tả gốc không có.
+  description: { type: String, default: "" },
+  start_date: { type: Date, default: Date.now },
+  is_active: { type: Boolean, default: true },
+}, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 

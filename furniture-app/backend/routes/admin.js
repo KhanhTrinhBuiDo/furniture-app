@@ -5,6 +5,7 @@ import Order from "../models/Order.js";
 import Voucher from "../models/Voucher.js";
 import Transaction from "../models/Transaction.js";
 import { sanitizeUser } from "../utils/userSerializer.js";
+import { serializeVoucher } from "../utils/voucherHelpers.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -75,7 +76,7 @@ router.get("/dashboard", async (req, res) => {
         const topProducts = topProductsAgg.map(t => ({
             _id: t.product._id,
             name: t.product.name,
-            img: t.product.image,
+            img: t.product.images?.[0] || t.product.image,
             price: t.product.price,
             sold: t.sold,
         }));
@@ -145,44 +146,45 @@ router.delete("/users/:id", async (req, res) => {
 // ─── Vouchers ─────────────────────────────────────────────────────────────────
 // GHI CHÚ: Voucher model mới dùng discount_type (PERCENTAGE/FIXED_AMOUNT) +
 // conditions (object tự do: { percent, maxDiscount, amount, minOrderValue })
-// thay vì các field phẳng type/value/minOrderValue/isActive như bản cũ.
-// normalizeVoucherBody() chấp nhận CẢ HAI kiểu tên field trong lúc frontend
-// (AdminVouchers.jsx) chưa được cập nhật theo model mới.
+// thay vì các field phẳng type/value/minOrderValue như bản cũ, cộng thêm
+// description/start_date/is_active (đã bổ sung — xem models/Voucher.js).
+// normalizeVoucherBody()/serializeVoucher() dịch qua lại 2 chiều để
+// AdminVouchers.jsx không cần sửa gì.
 function normalizeVoucherBody(body) {
     const out = {};
     if (body.code) out.code = body.code;
-    if (body.expiry_date || body.endDate) out.expiry_date = body.expiry_date || body.endDate;
-    if (body.usage_limit || body.usageLimit) out.usage_limit = Number(body.usage_limit || body.usageLimit);
+    if (body.description !== undefined) out.description = body.description;
+    if (body.startDate) out.start_date = body.startDate;
+    if (body.endDate) out.expiry_date = body.endDate;
+    if (body.isActive !== undefined) out.is_active = body.isActive;
+    if (body.usageLimit !== undefined) out.usage_limit = Number(body.usageLimit);
 
-    const discountType = body.discount_type || (body.type === "percent" ? "PERCENTAGE" : body.type === "fixed" ? "FIXED_AMOUNT" : body.discount_type);
+    const discountType = body.type === "percent" ? "PERCENTAGE" : body.type === "fixed" ? "FIXED_AMOUNT" : body.discount_type;
     if (discountType) out.discount_type = discountType;
 
-    if (body.conditions) {
-        out.conditions = body.conditions;
-    } else {
-        const conditions = {};
-        if (body.percent !== undefined) conditions.percent = Number(body.percent);
-        if (body.value !== undefined && discountType === "PERCENTAGE") conditions.percent = Number(body.value);
-        if (body.value !== undefined && discountType === "FIXED_AMOUNT") conditions.amount = Number(body.value);
-        if (body.amount !== undefined) conditions.amount = Number(body.amount);
-        if (body.maxDiscount !== undefined) conditions.maxDiscount = Number(body.maxDiscount);
-        if (body.minOrderValue !== undefined) conditions.minOrderValue = Number(body.minOrderValue);
-        if (Object.keys(conditions).length) out.conditions = conditions;
+    const conditions = {};
+    if (body.value !== undefined) {
+        if (discountType === "PERCENTAGE") conditions.percent = Number(body.value);
+        else conditions.amount = Number(body.value);
     }
+    if (body.maxDiscount !== undefined && body.maxDiscount !== "") conditions.maxDiscount = Number(body.maxDiscount);
+    if (body.minOrderValue !== undefined) conditions.minOrderValue = Number(body.minOrderValue);
+    if (Object.keys(conditions).length) out.conditions = conditions;
+
     return out;
 }
 
 router.get("/vouchers", async (req, res) => {
     try {
         const vouchers = await Voucher.find().sort({ created_at: -1 });
-        res.json({ success: true, vouchers });
+        res.json({ success: true, vouchers: vouchers.map(serializeVoucher) });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 router.post("/vouchers", async (req, res) => {
     try {
         const v = await Voucher.create(normalizeVoucherBody(req.body));
-        res.status(201).json({ success: true, voucher: v });
+        res.status(201).json({ success: true, voucher: serializeVoucher(v) });
     } catch (err) { res.status(400).json({ message: err.message }); }
 });
 
@@ -190,7 +192,7 @@ router.put("/vouchers/:id", async (req, res) => {
     try {
         const v = await Voucher.findByIdAndUpdate(req.params.id, normalizeVoucherBody(req.body), { new: true, runValidators: true });
         if (!v) return res.status(404).json({ message: "Không tìm thấy voucher" });
-        res.json({ success: true, voucher: v });
+        res.json({ success: true, voucher: serializeVoucher(v) });
     } catch (err) { res.status(400).json({ message: err.message }); }
 });
 

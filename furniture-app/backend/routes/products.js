@@ -14,12 +14,7 @@ function extractCloudinaryPublicId(url) {
     return match ? match[1] : null;
 }
 
-// ─── Category/Style giờ là collection riêng (không còn string tự do) ────────
-// Tìm theo tên (không phân biệt hoa/thường); nếu chưa có thì tự tạo mới.
-// GHI CHÚ: đây là hạ tầng CẦN THIẾT để products.js hoạt động được với schema
-// mới — tài liệu 9 route gốc không có sẵn route quản lý categories/styles
-// riêng, nên phải xử lý tại đây theo kiểu "find or create" để admin không bị
-// chặn luồng thêm sản phẩm.
+// ─── Category/Style là collection riêng — tìm theo tên, tự tạo nếu chưa có ───
 async function resolveCategoryId(name) {
     if (!name) return null;
     const trimmed = String(name).trim();
@@ -42,6 +37,48 @@ async function resolveStyleIds(names) {
     return ids;
 }
 
+// ─── Serialize sản phẩm cho client — GIỮ NGUYÊN tên field cũ ─────────────────
+// (img, images[], salePrice, stock, sold, isFeatured, isNewProduct, category,
+// style, tags, specifications) để ProductCard.jsx / AdminProducts.jsx /
+// ProductDetailPage.jsx / HomePage.jsx không cần sửa. Field không có dữ liệu
+// thật (rating, reviewCount) trả về 0 — UI vốn đã ẩn phần liên quan khi = 0.
+function serializeProduct(p) {
+    const o = typeof p.toObject === "function" ? p.toObject() : p;
+    const category = o.category_id && typeof o.category_id === "object" ? o.category_id.name : undefined;
+    const styles = Array.isArray(o.style_ids) ? o.style_ids.filter(s => typeof s === "object").map(s => s.name) : [];
+    const allImages = (o.images?.length ? o.images : [o.image]).filter(Boolean);
+    const available = Math.max(0, (o.actual_stock || 0) - (o.locked_stock || 0));
+
+    return {
+        _id: o._id,
+        id: o._id,
+        name: o.name,
+        price: o.price,
+        salePrice: o.sale_price ?? null,
+        description: o.description || "",
+        img: allImages[0] || "",
+        images: allImages,
+        category,
+        categoryId: o.category_id?._id || o.category_id,
+        style: styles.join(", "),
+        styles,
+        styleIds: o.style_ids,
+        stock: available,
+        actualStock: o.actual_stock,
+        lockedStock: o.locked_stock,
+        sold: o.sold || 0,
+        rating: 0,        // không có hệ thống đánh giá trong schema mới
+        reviewCount: 0,
+        isNew: !!o.is_new,
+        isFeatured: !!o.is_featured,
+        tags: o.tags || [],
+        specifications: o.specifications || [],
+        isActive: o.is_active,
+        createdAt: o.created_at,
+        updatedAt: o.updated_at,
+    };
+}
+
 // ─── GET /api/products/meta/categories — danh sách category cho dropdown ────
 router.get("/meta/categories", async (req, res) => {
     try {
@@ -59,10 +96,9 @@ router.get("/meta/styles", async (req, res) => {
 });
 
 // ─── GET /api/products ────────────────────────────────────────────────────────
-// Public — danh sách + lọc. "Còn hàng" = actual_stock - locked_stock > 0.
 router.get("/", async (req, res) => {
     try {
-        const { q, category, style, minPrice, maxPrice, sort = "createdAt_desc", page = 1, limit = 12 } = req.query;
+        const { q, category, style, minPrice, maxPrice, sort = "createdAt_desc", page = 1, limit = 12, featured } = req.query;
 
         const filter = { is_active: true };
 
@@ -72,12 +108,13 @@ router.get("/", async (req, res) => {
         }
         if (category) {
             const cat = await Category.findOne({ name: { $regex: `^${category}$`, $options: "i" } });
-            filter.category_id = cat ? cat._id : null; // không tìm thấy category → trả về rỗng, không phải "bỏ qua lọc"
+            filter.category_id = cat ? cat._id : null;
         }
         if (style) {
             const st = await Style.findOne({ name: { $regex: `^${style}$`, $options: "i" } });
             filter.style_ids = st ? st._id : null;
         }
+        if (featured === "true") filter.is_featured = true;
         if (minPrice || maxPrice) {
             filter.price = {};
             if (minPrice) filter.price.$gte = Number(minPrice);
@@ -89,6 +126,7 @@ router.get("/", async (req, res) => {
             price_desc: { price: -1 },
             newest: { created_at: -1 },
             createdAt_desc: { created_at: -1 },
+            best_selling: { sold: -1 },
         };
         const sortObj = sortMap[sort] || { created_at: -1 };
 
@@ -97,19 +135,13 @@ router.get("/", async (req, res) => {
             Product.find(filter)
                 .populate("category_id", "name")
                 .populate("style_ids", "name")
-                .sort(sortObj).skip(skip).limit(Number(limit)).lean(),
+                .sort(sortObj).skip(skip).limit(Number(limit)),
             Product.countDocuments(filter),
         ]);
 
-        // Đính kèm available_stock tính sẵn để frontend không phải tự trừ
-        const withAvailability = products.map(p => ({
-            ...p,
-            available_stock: Math.max(0, p.actual_stock - p.locked_stock),
-        }));
-
         res.json({
             success: true,
-            products: withAvailability,
+            products: products.map(serializeProduct),
             pagination: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / Number(limit)) },
         });
     } catch (err) {
@@ -119,7 +151,6 @@ router.get("/", async (req, res) => {
 });
 
 // ─── GET /api/products/categories ─────────────────────────────────────────────
-// Danh mục kèm số lượng sản phẩm đang active — dùng cho MoreProducts.jsx
 router.get("/categories", async (_req, res) => {
     try {
         const agg = await Product.aggregate([
@@ -131,11 +162,7 @@ router.get("/categories", async (_req, res) => {
         ]);
         res.json({
             success: true,
-            categories: agg.filter(c => c.category).map(c => ({
-                id: c._id,
-                name: c.category.name,
-                count: c.count,
-            })),
+            categories: agg.filter(c => c.category).map(c => ({ name: c.category.name, count: c.count })),
         });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
@@ -157,12 +184,12 @@ router.get("/:id", async (req, res) => {
             category_id: product.category_id,
             is_active: true,
             _id: { $ne: product._id },
-        }).limit(4).lean();
+        }).limit(4).populate("category_id", "name");
 
         res.json({
             success: true,
-            product: { ...product.toObject(), available_stock: Math.max(0, product.actual_stock - product.locked_stock) },
-            related,
+            product: serializeProduct(product),
+            related: related.map(serializeProduct),
         });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
@@ -173,7 +200,6 @@ router.get("/:id", async (req, res) => {
 // ADMIN ROUTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ─── Admin: GET /api/products/admin/all — bao gồm sản phẩm ẩn ───────────────
 router.get("/admin/all", protect, requireAdmin, async (req, res) => {
     try {
         const { q, category, isActive, page = 1, limit = 20 } = req.query;
@@ -193,32 +219,41 @@ router.get("/admin/all", protect, requireAdmin, async (req, res) => {
             Product.find(filter)
                 .populate("category_id", "name")
                 .populate("style_ids", "name")
-                .sort({ created_at: -1 }).skip(skip).limit(Number(limit)).lean(),
+                .sort({ created_at: -1 }).skip(skip).limit(Number(limit)),
             Product.countDocuments(filter),
         ]);
-        res.json({ success: true, products, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+        res.json({
+            success: true,
+            products: products.map(serializeProduct),
+            pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+        });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
 });
 
 // ─── Admin: POST /api/products — Thêm sản phẩm ───────────────────────────────
-// GHI CHÚ: Product model mới chỉ có 1 field `image` (số ít), không còn
-// `images[]` như bản cũ. Route vẫn nhận uploadMultiple để không phá vỡ form
-// admin hiện tại (có thể chọn nhiều ảnh), nhưng CHỈ LƯU ảnh đầu tiên. Nếu cần
-// nhiều ảnh/sản phẩm thật sự, cần bổ sung lại field images[] vào model.
 router.post("/",
     protect, requireAdmin,
     uploadMultiple,
     handleUploadError,
     async (req, res) => {
         try {
-            const body = req.body;
+            const body = { ...req.body };
+
+            if (typeof body.specifications === "string") {
+                try { body.specifications = JSON.parse(body.specifications); } catch { body.specifications = []; }
+            }
+            if (typeof body.tags === "string") {
+                try { body.tags = JSON.parse(body.tags); } catch { body.tags = body.tags.split(",").map(t => t.trim()).filter(Boolean); }
+            }
 
             const uploadedImages = req.files?.map(f => f.path) || [];
-            const bodyImage = body.image || (Array.isArray(body.images) ? body.images[0] : body.images);
-            const image = uploadedImages[0] || bodyImage || "";
-            if (!image) return res.status(400).json({ message: "Cần ít nhất 1 ảnh sản phẩm" });
+            const bodyImages = body.images
+                ? (Array.isArray(body.images) ? body.images : [body.images]).filter(Boolean)
+                : [];
+            const images = [...uploadedImages, ...bodyImages];
+            if (!images.length) return res.status(400).json({ message: "Cần ít nhất 1 ảnh sản phẩm" });
 
             const category_id = await resolveCategoryId(body.category);
             if (!category_id) return res.status(400).json({ message: "Vui lòng chọn danh mục" });
@@ -227,13 +262,19 @@ router.post("/",
             const product = await Product.create({
                 name: body.name,
                 price: Number(body.price),
+                sale_price: body.salePrice ? Number(body.salePrice) : null,
                 description: body.description || "",
-                image,
+                image: images[0],
+                images,
                 actual_stock: Number(body.actual_stock ?? body.stock ?? 0),
                 locked_stock: 0,
                 category_id,
                 style_ids,
-                is_active: body.is_active !== undefined ? (body.is_active === "true" || body.is_active === true) : true,
+                is_active: body.isActive !== undefined ? (body.isActive === "true" || body.isActive === true) : true,
+                is_featured: body.isFeatured === "true" || body.isFeatured === true,
+                is_new: body.isNewProduct === "true" || body.isNewProduct === true,
+                tags: body.tags || [],
+                specifications: body.specifications || [],
             });
 
             await AuditLog.log({
@@ -242,7 +283,8 @@ router.post("/",
                 note: `Thêm sản phẩm mới: ${product.name}`,
             });
 
-            res.status(201).json({ success: true, product });
+            const populated = await product.populate([{ path: "category_id", select: "name" }, { path: "style_ids", select: "name" }]);
+            res.status(201).json({ success: true, product: serializeProduct(populated) });
         } catch (err) {
             console.error("Create product error:", err.message);
             if (err.name === "ValidationError") {
@@ -265,34 +307,52 @@ router.put("/:id",
             if (!product) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
 
             const before = product.toObject();
-            const body = req.body;
-            const update = {};
+            const body = { ...req.body };
 
+            if (typeof body.specifications === "string") {
+                try { body.specifications = JSON.parse(body.specifications); } catch { body.specifications = []; }
+            }
+            if (typeof body.tags === "string") {
+                try { body.tags = JSON.parse(body.tags); } catch { body.tags = body.tags.split(",").map(t => t.trim()).filter(Boolean); }
+            }
+
+            const update = {};
             if (body.name !== undefined) update.name = body.name;
             if (body.description !== undefined) update.description = body.description;
             if (body.price !== undefined) update.price = Number(body.price);
+            if (body.salePrice !== undefined) update.sale_price = body.salePrice ? Number(body.salePrice) : null;
             if (body.actual_stock !== undefined || body.stock !== undefined) {
                 update.actual_stock = Number(body.actual_stock ?? body.stock);
             }
-            if (body.is_active !== undefined) update.is_active = body.is_active === "true" || body.is_active === true;
+            if (body.isActive !== undefined) update.is_active = body.isActive === "true" || body.isActive === true;
+            if (body.isFeatured !== undefined) update.is_featured = body.isFeatured === "true" || body.isFeatured === true;
+            if (body.isNewProduct !== undefined) update.is_new = body.isNewProduct === "true" || body.isNewProduct === true;
+            if (body.tags !== undefined) update.tags = body.tags;
+            if (body.specifications !== undefined) update.specifications = body.specifications;
             if (body.category !== undefined) update.category_id = await resolveCategoryId(body.category);
             if (body.styles !== undefined || body.style !== undefined) {
                 update.style_ids = await resolveStyleIds(body.styles || body.style);
             }
 
-            // Ảnh mới upload (nếu có) — ghi đè ảnh cũ; ảnh cũ bị xoá trên Cloudinary (best-effort)
+            // Ảnh: gộp ảnh giữ lại (frontend gửi lại danh sách ảnh muốn giữ trong
+            // body.images) + ảnh mới upload. Ảnh bị loại bỏ sẽ xoá trên Cloudinary.
             const newImages = req.files?.map(f => f.path) || [];
-            if (newImages.length) {
-                if (product.image) {
-                    const publicId = extractCloudinaryPublicId(product.image);
-                    if (publicId) deleteCloudinaryImage(publicId).catch(e => console.warn("Xoá ảnh Cloudinary lỗi:", e.message));
-                }
-                update.image = newImages[0];
-            } else if (body.image !== undefined) {
-                update.image = body.image;
+            const keepImages = body.images !== undefined
+                ? (Array.isArray(body.images) ? body.images : [body.images]).filter(Boolean)
+                : product.images;
+            const removedImages = (product.images || []).filter(img => !keepImages.includes(img));
+            for (const img of removedImages) {
+                const publicId = extractCloudinaryPublicId(img);
+                if (publicId) deleteCloudinaryImage(publicId).catch(e => console.warn("Xoá ảnh Cloudinary lỗi:", e.message));
+            }
+            const finalImages = [...keepImages, ...newImages];
+            if (finalImages.length) {
+                update.images = finalImages;
+                update.image = finalImages[0];
             }
 
-            const updated = await Product.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
+            const updated = await Product.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true })
+                .populate("category_id", "name").populate("style_ids", "name");
 
             await AuditLog.log({
                 user: req.user._id, action: "UPDATE", entity: "Product",
@@ -300,7 +360,7 @@ router.put("/:id",
                 note: `Cập nhật sản phẩm: ${updated.name}`,
             });
 
-            res.json({ success: true, product: updated });
+            res.json({ success: true, product: serializeProduct(updated) });
         } catch (err) {
             if (err.name === "ValidationError") {
                 const msg = Object.values(err.errors)[0]?.message;
@@ -332,21 +392,16 @@ router.delete("/:id", protect, requireAdmin, async (req, res) => {
     }
 });
 
-// ─── Admin: POST /api/products/:id/restore ───────────────────────────────────
 router.post("/:id/restore", protect, requireAdmin, async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(req.params.id, { is_active: true }, { new: true });
         if (!product) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
-        res.json({ success: true, message: "Đã khôi phục sản phẩm", product });
+        res.json({ success: true, message: "Đã khôi phục sản phẩm", product: serializeProduct(product) });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// ─── Admin: PATCH /api/products/:id/stock — Nhập thêm hàng vào actual_stock ──
-// GHI CHÚ: chỉ chỉnh actual_stock (tồn kho thật). locked_stock được hệ thống
-// tự quản lý qua vòng đời đơn hàng (xem utils/stockHelpers.js) — admin không
-// nên chỉnh tay locked_stock vì sẽ làm sai lệch số lượng đang giữ chỗ.
 router.patch("/:id/stock", protect, requireAdmin, async (req, res) => {
     try {
         const { stock, note } = req.body;
@@ -367,7 +422,7 @@ router.patch("/:id/stock", protect, requireAdmin, async (req, res) => {
             ip: req.ip, note: note || `Cập nhật tồn kho: ${before.actual_stock} → ${product.actual_stock}`,
         });
 
-        res.json({ success: true, product });
+        res.json({ success: true, product: serializeProduct(product) });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

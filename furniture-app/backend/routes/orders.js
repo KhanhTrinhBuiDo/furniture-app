@@ -5,6 +5,7 @@ import Voucher from "../models/Voucher.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import { lockStock, releaseStock } from "../utils/stockHelpers.js";
 import { checkVoucherValidity, calcVoucherDiscount, lockVoucher, releaseVoucher } from "../utils/voucherHelpers.js";
+import { serializeOrder, packAddress, fetchLatestTransactions, STATUS_TO_DB } from "../utils/orderSerializer.js";
 
 const router = express.Router();
 
@@ -12,12 +13,11 @@ function genTrackingToken() {
     return `AMH${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
 }
 
-// GHI CHÚ: Order model mới KHÔNG có paymentStatus/paymentMethod/transactionNo —
-// các field này giờ thuộc collection `transactions` (1 Order có thể có nhiều
-// Transaction, ví dụ 1 lần thất bại + 1 lần thành công). orders.js chỉ còn lo
-// vòng đời "giao vận" (Pending → Confirmed → Shipping → Completed/Cancelled);
-// payment.js lo vòng đời thanh toán riêng và gọi ngược vào đây khi cần cập
-// nhật status/commit kho sau khi thanh toán xong.
+// GHI CHÚ: Order model mới KHÔNG có paymentStatus/paymentMethod/transactionNo
+// (nay thuộc collection `transactions`) và status dùng "Pending/Confirmed/..."
+// (viết hoa). Toàn bộ phần "dịch" 2 chiều nằm ở utils/orderSerializer.js —
+// nhờ vậy CartPage.jsx/PaymentModal.jsx/OrderHistoryPage.jsx/AdminOrders.jsx/
+// orderService.js KHÔNG CẦN SỬA GÌ.
 const STATUS_FLOW = {
     Pending: ["Confirmed", "Cancelled"],
     Confirmed: ["Shipping", "Cancelled"],
@@ -28,13 +28,18 @@ function canCancel(order) {
     return ["Pending", "Confirmed"].includes(order.status);
 }
 
+async function populateForResponse(query) {
+    return query.populate("items.product_id", "name image images").populate("voucher_id", "code").populate("user_id", "full_name email");
+}
+
 // ─── POST /api/orders ─────────────────────────────────────────────────────────
+// Body: { items: [{productId, name, img, price, quantity}], shippingAddress: {...}, paymentMethod, voucherCode }
 router.post("/", protect, async (req, res) => {
     try {
-        const { items, deliveryAddress, voucherCode } = req.body;
+        const { items, shippingAddress, voucherCode } = req.body;
 
         if (!items?.length) return res.status(400).json({ message: "Giỏ hàng trống" });
-        if (!deliveryAddress) return res.status(400).json({ message: "Thiếu địa chỉ giao hàng" });
+        if (!shippingAddress) return res.status(400).json({ message: "Thiếu địa chỉ giao hàng" });
 
         const mongoIds = items.map(i => String(i.productId)).filter(id => /^[a-f\d]{24}$/i.test(id));
         const dbProducts = await Product.find({ _id: { $in: mongoIds }, is_active: true }).lean();
@@ -54,13 +59,14 @@ router.post("/", protect, async (req, res) => {
                 return res.status(400).json({ message: `"${dbProd.name}" chỉ còn ${available} sản phẩm có thể đặt` });
             }
 
-            const sub = dbProd.price * Number(item.quantity);
-            subtotal += sub;
+            // Giữ đúng logic cũ: ưu tiên giá sale nếu có (sale_price), snapshot lúc đặt hàng
+            const unitPrice = dbProd.sale_price || dbProd.price;
+            subtotal += unitPrice * Number(item.quantity);
 
             orderItems.push({
                 product_id: dbProd._id,
                 product_name_snapshot: dbProd.name,
-                unit_price_snapshot: dbProd.price,
+                unit_price_snapshot: unitPrice,
                 quantity: Number(item.quantity),
             });
             stockNeeds.push({ product_id: dbProd._id, quantity: Number(item.quantity) });
@@ -78,14 +84,13 @@ router.post("/", protect, async (req, res) => {
 
         const total_amount = Math.max(0, subtotal - discount_amount + shippingFee);
 
-        // ─── Giữ chỗ tồn kho + voucher (2 pha, xem utils/stockHelpers.js) ─────
         await lockStock(stockNeeds);
         if (voucherDoc) await lockVoucher(Voucher, voucherDoc._id);
 
         const order = await Order.create({
             user_id: req.user._id,
             items: orderItems,
-            delivery_address_snapshot: deliveryAddress,
+            delivery_address_snapshot: packAddress(shippingAddress),
             total_amount,
             status: "Pending",
             status_log: [{ status: "Pending", note: "Đơn hàng mới tạo" }],
@@ -94,7 +99,7 @@ router.post("/", protect, async (req, res) => {
             discount_amount,
         });
 
-        res.status(201).json({ success: true, order });
+        res.status(201).json({ success: true, order: serializeOrder(order, null) });
     } catch (err) {
         console.error("Create order error:", err.message);
         res.status(500).json({ message: err.message || "Lỗi tạo đơn hàng" });
@@ -106,26 +111,33 @@ router.get("/my", protect, async (req, res) => {
     try {
         const { status, page = 1, limit = 10 } = req.query;
         const filter = { user_id: req.user._id };
-        if (status) filter.status = status;
+        if (status) filter.status = STATUS_TO_DB[status] || status;
+
         const skip = (Number(page) - 1) * Number(limit);
         const [orders, total] = await Promise.all([
-            Order.find(filter).sort({ created_at: -1 }).skip(skip).limit(Number(limit))
-                .populate("items.product_id", "name image").lean(),
+            populateForResponse(Order.find(filter)).sort({ created_at: -1 }).skip(skip).limit(Number(limit)),
             Order.countDocuments(filter),
         ]);
-        res.json({ success: true, orders, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+
+        const txMap = await fetchLatestTransactions(orders.map(o => o._id));
+        res.json({
+            success: true,
+            orders: orders.map(o => serializeOrder(o, txMap.get(String(o._id)))),
+            pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+        });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
-// ─── GET /api/orders/my/:trackingToken ────────────────────────────────────────
-// (Giữ tên tham số route "orderCode" để không đổi hợp đồng gọi API phía
-// frontend hiện tại — nội bộ match theo field tracking_token.)
+// ─── GET /api/orders/my/:orderCode ────────────────────────────────────────────
 router.get("/my/:orderCode", protect, async (req, res) => {
     try {
-        const order = await Order.findOne({ tracking_token: req.params.orderCode, user_id: req.user._id })
-            .populate("items.product_id", "name image");
+        const order = await populateForResponse(
+            Order.findOne({ tracking_token: req.params.orderCode, user_id: req.user._id })
+        );
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-        res.json({ success: true, order });
+
+        const txMap = await fetchLatestTransactions([order._id]);
+        res.json({ success: true, order: serializeOrder(order, txMap.get(String(order._id))) });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
@@ -141,11 +153,11 @@ router.post("/my/:orderCode/cancel", protect, async (req, res) => {
         order.status_log.push({ status: "Cancelled", note: req.body.reason || "Khách hàng huỷ" });
         await order.save();
 
-        // Giải phóng giữ chỗ tồn kho + voucher
         await releaseStock(order.items.map(i => ({ product_id: i.product_id, quantity: i.quantity })));
         if (order.voucher_id) await releaseVoucher(Voucher, order.voucher_id);
 
-        res.json({ success: true, message: "Đã huỷ đơn hàng", order });
+        const populated = await populateForResponse(Order.findById(order._id));
+        res.json({ success: true, message: "Đã huỷ đơn hàng", order: serializeOrder(populated, null) });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
@@ -158,7 +170,7 @@ router.post("/validate-voucher", protect, async (req, res) => {
         const validity = checkVoucherValidity(voucher, Number(orderTotal));
         if (!validity.ok) return res.status(400).json({ message: validity.msg });
         const discount = calcVoucherDiscount(voucher, Number(orderTotal));
-        res.json({ success: true, discount, voucherCode: voucher.code });
+        res.json({ success: true, discount, voucherCode: voucher.code, description: voucher.description || "" });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
@@ -167,20 +179,29 @@ router.get("/", protect, requireAdmin, async (req, res) => {
     try {
         const { status, page = 1, limit = 20 } = req.query;
         const filter = {};
-        if (status) filter.status = status;
+        if (status) filter.status = STATUS_TO_DB[status] || status;
+
         const skip = (Number(page) - 1) * Number(limit);
         const [orders, total] = await Promise.all([
-            Order.find(filter).populate("user_id", "full_name email").sort({ created_at: -1 }).skip(skip).limit(Number(limit)),
+            populateForResponse(Order.find(filter)).sort({ created_at: -1 }).skip(skip).limit(Number(limit)),
             Order.countDocuments(filter),
         ]);
-        res.json({ success: true, orders, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+
+        const txMap = await fetchLatestTransactions(orders.map(o => o._id));
+        res.json({
+            success: true,
+            orders: orders.map(o => serializeOrder(o, txMap.get(String(o._id)))),
+            pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+        });
     } catch (err) { res.status(500).json({ message: "Lỗi máy chủ" }); }
 });
 
 // ─── Admin: PUT /api/orders/:id/status + tạo Warranty khi Completed ──────────
 router.put("/:id/status", protect, requireAdmin, async (req, res) => {
     try {
-        const { status, note } = req.body;
+        const { status: clientStatus, note } = req.body;
+        const status = STATUS_TO_DB[clientStatus] || clientStatus;
+
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
@@ -207,16 +228,15 @@ router.put("/:id/status", protect, requireAdmin, async (req, res) => {
             }
         }
 
-        res.json({ success: true, order });
+        const populated = await populateForResponse(Order.findById(order._id));
+        const txMap = await fetchLatestTransactions([order._id]);
+        res.json({ success: true, order: serializeOrder(populated, txMap.get(String(order._id))) });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
 });
 
-// ─── Dev: POST /api/orders/:id/complete-now — hoàn tất nhanh để test ─────────
-// GHI CHÚ: bản gốc còn tự set paymentStatus="paid" ở đây — nay việc đó thuộc
-// về Transaction (xem payment.js). Route này chỉ đẩy nhanh trạng thái giao
-// vận cho mục đích test, KHÔNG tự tạo Transaction thành công tương ứng.
+// ─── Dev: POST /api/orders/:id/complete-now ───────────────────────────────────
 router.post("/:id/complete-now", protect, requireAdmin, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -228,7 +248,8 @@ router.post("/:id/complete-now", protect, requireAdmin, async (req, res) => {
             const { createWarrantiesForOrder } = await import("./warranty.js");
             await createWarrantiesForOrder(order._id);
         } catch (e) { console.warn("Warranty:", e.message); }
-        res.json({ success: true, message: "Đã hoàn tất + tạo warranty", order });
+        const populated = await populateForResponse(Order.findById(order._id));
+        res.json({ success: true, message: "Đã hoàn tất + tạo warranty", order: serializeOrder(populated, null) });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

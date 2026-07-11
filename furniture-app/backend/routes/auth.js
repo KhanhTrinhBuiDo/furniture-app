@@ -14,10 +14,7 @@ const SALT_ROUNDS = 10;
 // ─── POST /api/auth/register ─────────────────────────────────────────────────
 router.post("/register", async (req, res) => {
     try {
-        // GHI CHÚ: model User mới không còn field "dob" (ngày sinh) — đã bỏ khỏi
-        // luồng đăng ký. RegisterPage.jsx hiện vẫn gửi dob lên, giá trị này sẽ
-        // bị bỏ qua an toàn (không gây lỗi) cho tới khi frontend được cập nhật.
-        const { fullName, phone, email, password } = req.body;
+        const { fullName, phone, dob, email, password } = req.body;
 
         if (!fullName || !email || !password) {
             return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
@@ -33,7 +30,8 @@ router.post("/register", async (req, res) => {
         const user = await User.create({
             full_name: fullName,
             email: email.toLowerCase(),
-            phone: phone || undefined, // undefined thay vì "" — tránh đụng unique+sparse index khi rỗng
+            phone: phone || undefined,
+            dob: dob || null,
             password_hash,
             role: "User",
         });
@@ -111,10 +109,10 @@ router.get("/me", protect, (req, res) => {
 // ─── PUT /api/auth/profile ────────────────────────────────────────────────────
 router.put("/profile", protect, async (req, res) => {
     try {
-        const { fullName, phone } = req.body;
+        const { fullName, phone, dob } = req.body;
         const user = await User.findByIdAndUpdate(
             req.user._id,
-            { full_name: fullName, phone },
+            { full_name: fullName, phone, dob: dob || null },
             { new: true, runValidators: true }
         );
         res.json({ success: true, user: sanitizeUser(user) });
