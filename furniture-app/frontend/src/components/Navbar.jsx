@@ -50,7 +50,7 @@ export default function Navbar() {
     { label: "Sản phẩm", action: () => navigate("shop") },
     { label: "Không gian", action: () => navigate("home") },
     { label: "Inspirations", action: () => navigate("blog") },
-    { label: "Bảo hành", action: () => navigate("warranty") },
+    // { label: "Bảo hành", action: () => navigate("warranty") },
   ];
 
   return (
