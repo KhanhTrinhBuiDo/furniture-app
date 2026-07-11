@@ -28,7 +28,7 @@ function canCancel(order) {
     return ["Pending", "Confirmed"].includes(order.status);
 }
 
-async function populateForResponse(query) {
+function populateForResponse(query) {
     return query.populate("items.product_id", "name image images").populate("voucher_id", "code").populate("user_id", "full_name email");
 }
 
@@ -195,7 +195,7 @@ router.get("/", protect, requireAdmin, async (req, res) => {
         });
     } catch (err) {
         console.error("GET /api/orders (admin) error:", err);
-        res.status(500).json({ message: "Lỗi máy chủ", detail: err.message });
+        res.status(500).json({ message: "Lỗi máy chủ" });
     }
 });
 router.put("/:id/status", protect, requireAdmin, async (req, res) => {
