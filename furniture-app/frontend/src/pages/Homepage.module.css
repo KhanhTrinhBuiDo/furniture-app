@@ -193,6 +193,7 @@
     transition: all 0.2s;
 }
 
+/*  */
 .viewAllBtn:hover {
     background: var(--color-espresso);
     color: #fff;

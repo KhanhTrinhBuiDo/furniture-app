@@ -122,6 +122,7 @@
     transition: background 0.2s;
 }
 
+/*  */
 .moreBadge:hover {
     background: var(--color-caramel);
 }
