@@ -10,27 +10,18 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import readline from "readline";
+// GHI CHÚ: trước đây file này tự định nghĩa 1 schema User riêng (fullName,
+// password, isActive, role: "admin" chữ thường...) — KHÔNG khớp với model
+// User.js thật của hệ thống (full_name, password_hash, is_active, role:
+// "Admin" chữ hoa). Hệ quả: admin tạo ra không đăng nhập được (route login
+// tìm password_hash, không tìm thấy) và dù đăng nhập được cũng bị 403 ở mọi
+// route admin (requireAdmin so sánh role !== "Admin"). Sửa lại dùng thẳng
+// model thật để đảm bảo đồng bộ tuyệt đối.
+import User from "./models/User.js"; // sửa lại đường dẫn nếu cấu trúc thư mục khác
 
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/funiro";
-
-// ─── User Schema (inline) ────────────────────────────────────────────────────
-const userSchema = new mongoose.Schema({
-    fullName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true, select: false },
-    phone: { type: String, default: "" },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
-    isActive: { type: Boolean, default: true },
-    authProvider: { type: String, default: "local" },
-    avatar: { type: String, default: "" },
-    resetOTP: { type: String, default: null, select: false },
-    resetOTPExpires: { type: Date, default: null, select: false },
-    resetOTPVerified: { type: Boolean, default: false, select: false },
-}, { timestamps: true });
-
-const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 // ─── CLI helper ──────────────────────────────────────────────────────────────
 function ask(rl, question) {
@@ -74,10 +65,10 @@ console.log("✅ MongoDB connected\n");
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 // ─── Kiểm tra admin đã tồn tại chưa ─────────────────────────────────────────
-const existingAdmins = await User.find({ role: "admin" }).select("fullName email");
+const existingAdmins = await User.find({ role: "Admin" }).select("full_name email");
 if (existingAdmins.length > 0) {
     console.log("⚠️  Đã có tài khoản Admin:");
-    existingAdmins.forEach(u => console.log(`   👑 ${u.fullName} <${u.email}>`));
+    existingAdmins.forEach(u => console.log(`   👑 ${u.full_name} <${u.email}>`));
     const cont = await ask(rl, "\nVẫn muốn tạo thêm admin? (y/N): ");
     if (cont.toLowerCase() !== "y") {
         console.log("\nKhông tạo thêm. Thoát.\n");
@@ -97,13 +88,13 @@ const existing = await User.findOne({ email: email.toLowerCase() });
 if (existing) {
     console.log(`\n❌ Email "${email}" đã được sử dụng bởi tài khoản role="${existing.role}".`);
 
-    if (existing.role !== "admin") {
+    if (existing.role !== "Admin") {
         const upgrade = await ask(rl, "Nâng cấp tài khoản này lên Admin? (y/N): ");
         if (upgrade.toLowerCase() === "y") {
-            existing.role = "admin";
-            existing.isActive = true;
+            existing.role = "Admin";
+            existing.is_active = true;
             await existing.save();
-            console.log(`\n✅ Đã nâng cấp "${existing.fullName}" lên Admin!\n`);
+            console.log(`\n✅ Đã nâng cấp "${existing.full_name}" lên Admin!\n`);
         }
     }
     rl.close();
@@ -145,21 +136,20 @@ console.log("\n⏳ Đang tạo tài khoản...");
 
 const hashed = await bcrypt.hash(password, 12);
 const admin = await User.create({
-    fullName: fullName.trim(),
+    full_name: fullName.trim(),
     email: email.trim().toLowerCase(),
-    password: hashed,
-    phone: phone.trim(),
-    role: "admin",
-    isActive: true,
-    authProvider: "local",
+    password_hash: hashed,
+    phone: phone.trim() || undefined,
+    role: "Admin",
+    is_active: true,
 });
 
 console.log("\n╔══════════════════════════════════════╗");
 console.log("║  ✅ Tạo Admin thành công!              ║");
 console.log("╚══════════════════════════════════════╝");
-console.log(`\n  👑 Tên   : ${admin.fullName}`);
+console.log(`\n  👑 Tên   : ${admin.full_name}`);
 console.log(`  📧 Email : ${admin.email}`);
-console.log(`  🎭 Role  : admin`);
+console.log(`  🎭 Role  : Admin`);
 console.log(`  🆔 ID    : ${admin._id}`);
 console.log("\n  Đăng nhập tại: http://localhost:3000");
 console.log("  (Nhấn avatar → Admin Dashboard)\n");

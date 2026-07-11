@@ -44,7 +44,7 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
 
-  const isAdmin = currentUser?.role === "admin" || currentUser?.role === "staff";
+  const isAdmin = currentUser?.role === "Admin" || currentUser?.role === "staff";
 
   const NAV = [
     { label: "Sản phẩm", action: () => navigate("shop") },
