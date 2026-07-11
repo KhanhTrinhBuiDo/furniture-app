@@ -3,10 +3,18 @@ import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import Voucher from "../models/Voucher.js";
+import Transaction from "../models/Transaction.js";
+import { sanitizeUser } from "../utils/userSerializer.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 router.use(protect, requireAdmin);
+
+// Đơn được xem là "đã thanh toán" nếu không còn ở Pending/Cancelled — vì
+// finalizeOrderOnPaymentSuccess() (payment.js) chỉ đẩy status đi tiếp khi
+// Transaction thành công. Order model mới không còn field paymentStatus
+// riêng để lọc trực tiếp.
+const PAID_STATUS_FILTER = { status: { $nin: ["Pending", "Cancelled"] } };
 
 // ─── GET /api/admin/dashboard ─────────────────────────────────────────────────
 router.get("/dashboard", async (req, res) => {
@@ -22,29 +30,38 @@ router.get("/dashboard", async (req, res) => {
             totalProducts, activeProducts,
             totalOrders, ordersThisMonth, ordersPrevMonth, pendingOrders,
             revenueThis, revenuePrev,
-            topProducts, revenueByDay, ordersByStatus,
+            topProductsAgg, revenueByDay, ordersByStatus,
         ] = await Promise.all([
-            User.countDocuments({ role: "user" }),
-            User.countDocuments({ role: "user", createdAt: { $gte: startMonth } }),
+            User.countDocuments({ role: "User" }),
+            User.countDocuments({ role: "User", created_at: { $gte: startMonth } }),
             Product.countDocuments(),
-            Product.countDocuments({ isActive: true }),
+            Product.countDocuments({ is_active: true }),
             Order.countDocuments(),
-            Order.countDocuments({ createdAt: { $gte: startMonth } }),
-            Order.countDocuments({ createdAt: { $gte: startPrevM, $lte: endPrevM } }),
-            Order.countDocuments({ status: "pending" }),
+            Order.countDocuments({ created_at: { $gte: startMonth } }),
+            Order.countDocuments({ created_at: { $gte: startPrevM, $lte: endPrevM } }),
+            Order.countDocuments({ status: "Pending" }),
             Order.aggregate([
-                { $match: { createdAt: { $gte: startMonth }, paymentStatus: "paid" } },
-                { $group: { _id: null, total: { $sum: "$total" } } },
+                { $match: { created_at: { $gte: startMonth }, ...PAID_STATUS_FILTER } },
+                { $group: { _id: null, total: { $sum: "$total_amount" } } },
             ]),
             Order.aggregate([
-                { $match: { createdAt: { $gte: startPrevM, $lte: endPrevM }, paymentStatus: "paid" } },
-                { $group: { _id: null, total: { $sum: "$total" } } },
+                { $match: { created_at: { $gte: startPrevM, $lte: endPrevM }, ...PAID_STATUS_FILTER } },
+                { $group: { _id: null, total: { $sum: "$total_amount" } } },
             ]),
-            Product.find({ isActive: true }).sort({ sold: -1 }).limit(5)
-                .select("name img category price sold").lean(),
+            // "Sản phẩm bán chạy" — Product không còn field `sold`, phải tính
+            // từ số lượng bán trong các đơn đã thanh toán.
             Order.aggregate([
-                { $match: { createdAt: { $gte: start30 }, paymentStatus: "paid" } },
-                { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, revenue: { $sum: "$total" }, orders: { $sum: 1 } } },
+                { $match: PAID_STATUS_FILTER },
+                { $unwind: "$items" },
+                { $group: { _id: "$items.product_id", sold: { $sum: "$items.quantity" } } },
+                { $sort: { sold: -1 } },
+                { $limit: 5 },
+                { $lookup: { from: "products", localField: "_id", foreignField: "_id", as: "product" } },
+                { $unwind: "$product" },
+            ]),
+            Order.aggregate([
+                { $match: { created_at: { $gte: start30 }, ...PAID_STATUS_FILTER } },
+                { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } }, revenue: { $sum: "$total_amount" }, orders: { $sum: 1 } } },
                 { $sort: { _id: 1 } },
             ]),
             Order.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
@@ -54,6 +71,14 @@ router.get("/dashboard", async (req, res) => {
         const revPrev = revenuePrev[0]?.total || 0;
         const revGrowth = revPrev === 0 ? 100 : Math.round(((revThis - revPrev) / revPrev) * 100);
         const ordGrowth = ordersPrevMonth === 0 ? 100 : Math.round(((ordersThisMonth - ordersPrevMonth) / ordersPrevMonth) * 100);
+
+        const topProducts = topProductsAgg.map(t => ({
+            _id: t.product._id,
+            name: t.product.name,
+            img: t.product.image,
+            price: t.product.price,
+            sold: t.sold,
+        }));
 
         res.json({
             success: true,
@@ -78,23 +103,33 @@ router.get("/users", async (req, res) => {
     try {
         const { q, page = 1, limit = 20, role } = req.query;
         const filter = {};
-        if (q) filter.$or = [{ fullName: { $regex: q, $options: "i" } }, { email: { $regex: q, $options: "i" } }];
+        if (q) filter.$or = [{ full_name: { $regex: q, $options: "i" } }, { email: { $regex: q, $options: "i" } }];
         if (role) filter.role = role;
         const skip = (Number(page) - 1) * Number(limit);
         const [users, total] = await Promise.all([
-            User.find(filter).select("-password -resetOTP -resetOTPExpires").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+            User.find(filter).select("-password_hash -refresh_token").sort({ created_at: -1 }).skip(skip).limit(Number(limit)),
             User.countDocuments(filter),
         ]);
-        res.json({ success: true, users, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+        res.json({
+            success: true,
+            users: users.map(sanitizeUser),
+            pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+        });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 router.put("/users/:id", async (req, res) => {
     try {
-        const { isActive, role } = req.body;
-        const user = await User.findByIdAndUpdate(req.params.id, { isActive, role }, { new: true }).select("-password");
+        // Chấp nhận cả tên field cũ (isActive) lẫn mới (is_active) để đỡ phải
+        // sửa AdminUsers.jsx ngay lập tức.
+        const update = {};
+        if (req.body.role !== undefined) update.role = req.body.role;
+        if (req.body.isActive !== undefined) update.is_active = req.body.isActive;
+        if (req.body.is_active !== undefined) update.is_active = req.body.is_active;
+
+        const user = await User.findByIdAndUpdate(req.params.id, update, { new: true });
         if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
-        res.json({ success: true, user });
+        res.json({ success: true, user: sanitizeUser(user) });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -108,23 +143,52 @@ router.delete("/users/:id", async (req, res) => {
 });
 
 // ─── Vouchers ─────────────────────────────────────────────────────────────────
+// GHI CHÚ: Voucher model mới dùng discount_type (PERCENTAGE/FIXED_AMOUNT) +
+// conditions (object tự do: { percent, maxDiscount, amount, minOrderValue })
+// thay vì các field phẳng type/value/minOrderValue/isActive như bản cũ.
+// normalizeVoucherBody() chấp nhận CẢ HAI kiểu tên field trong lúc frontend
+// (AdminVouchers.jsx) chưa được cập nhật theo model mới.
+function normalizeVoucherBody(body) {
+    const out = {};
+    if (body.code) out.code = body.code;
+    if (body.expiry_date || body.endDate) out.expiry_date = body.expiry_date || body.endDate;
+    if (body.usage_limit || body.usageLimit) out.usage_limit = Number(body.usage_limit || body.usageLimit);
+
+    const discountType = body.discount_type || (body.type === "percent" ? "PERCENTAGE" : body.type === "fixed" ? "FIXED_AMOUNT" : body.discount_type);
+    if (discountType) out.discount_type = discountType;
+
+    if (body.conditions) {
+        out.conditions = body.conditions;
+    } else {
+        const conditions = {};
+        if (body.percent !== undefined) conditions.percent = Number(body.percent);
+        if (body.value !== undefined && discountType === "PERCENTAGE") conditions.percent = Number(body.value);
+        if (body.value !== undefined && discountType === "FIXED_AMOUNT") conditions.amount = Number(body.value);
+        if (body.amount !== undefined) conditions.amount = Number(body.amount);
+        if (body.maxDiscount !== undefined) conditions.maxDiscount = Number(body.maxDiscount);
+        if (body.minOrderValue !== undefined) conditions.minOrderValue = Number(body.minOrderValue);
+        if (Object.keys(conditions).length) out.conditions = conditions;
+    }
+    return out;
+}
+
 router.get("/vouchers", async (req, res) => {
     try {
-        const vouchers = await Voucher.find().sort({ createdAt: -1 });
+        const vouchers = await Voucher.find().sort({ created_at: -1 });
         res.json({ success: true, vouchers });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 router.post("/vouchers", async (req, res) => {
     try {
-        const v = await Voucher.create(req.body);
+        const v = await Voucher.create(normalizeVoucherBody(req.body));
         res.status(201).json({ success: true, voucher: v });
     } catch (err) { res.status(400).json({ message: err.message }); }
 });
 
 router.put("/vouchers/:id", async (req, res) => {
     try {
-        const v = await Voucher.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const v = await Voucher.findByIdAndUpdate(req.params.id, normalizeVoucherBody(req.body), { new: true, runValidators: true });
         if (!v) return res.status(404).json({ message: "Không tìm thấy voucher" });
         res.json({ success: true, voucher: v });
     } catch (err) { res.status(400).json({ message: err.message }); }
@@ -156,28 +220,37 @@ router.get("/export/orders", async (req, res) => {
         const filter = {};
         if (status) filter.status = status;
         if (from || to) {
-            filter.createdAt = {};
-            if (from) filter.createdAt.$gte = new Date(from);
-            if (to) filter.createdAt.$lte = new Date(to);
+            filter.created_at = {};
+            if (from) filter.created_at.$gte = new Date(from);
+            if (to) filter.created_at.$lte = new Date(to);
         }
-        const orders = await Order.find(filter).populate("user", "fullName email").sort({ createdAt: -1 }).lean();
-        const rows = orders.map(o => ({
-            orderCode: o.orderCode,
-            customerName: o.shippingAddress?.fullName || o.user?.fullName || "",
-            email: o.shippingAddress?.email || o.user?.email || "",
-            phone: o.shippingAddress?.phone || "",
-            city: o.shippingAddress?.city || "",
-            items: o.items.length,
-            subtotal: o.subtotal,
-            discount: o.discount,
-            shippingFee: o.shippingFee,
-            total: o.total,
-            status: o.status,
-            paymentStatus: o.paymentStatus,
-            paymentMethod: o.paymentMethod,
-            createdAt: new Date(o.createdAt).toLocaleString("vi-VN"),
-        }));
-        const headers = ["orderCode", "customerName", "email", "phone", "city", "items", "subtotal", "discount", "shippingFee", "total", "status", "paymentStatus", "paymentMethod", "createdAt"];
+        const orders = await Order.find(filter).populate("user_id", "full_name email").sort({ created_at: -1 }).lean();
+
+        // Trạng thái thanh toán không còn nằm trên Order — lấy Transaction mới nhất/đơn
+        const txByOrder = new Map();
+        const txs = await Transaction.find({ order_id: { $in: orders.map(o => o._id) } }).sort({ created_at: -1 }).lean();
+        for (const t of txs) {
+            const key = String(t.order_id);
+            if (!txByOrder.has(key)) txByOrder.set(key, t);
+        }
+
+        const rows = orders.map(o => {
+            const tx = txByOrder.get(String(o._id));
+            return {
+                trackingToken: o.tracking_token,
+                customerName: o.user_id?.full_name || "",
+                email: o.user_id?.email || "",
+                deliveryAddress: o.delivery_address_snapshot,
+                items: o.items.length,
+                totalAmount: o.total_amount,
+                discountAmount: o.discount_amount,
+                status: o.status,
+                paymentMethod: tx?.method || "",
+                paymentStatus: tx?.status || "",
+                createdAt: new Date(o.created_at).toLocaleString("vi-VN"),
+            };
+        });
+        const headers = ["trackingToken", "customerName", "email", "deliveryAddress", "items", "totalAmount", "discountAmount", "status", "paymentMethod", "paymentStatus", "createdAt"];
         res.setHeader("Content-Type", "text/csv; charset=utf-8");
         res.setHeader("Content-Disposition", `attachment; filename="orders_${Date.now()}.csv"`);
         res.send("\uFEFF" + toCSV(rows, headers));
@@ -186,14 +259,17 @@ router.get("/export/orders", async (req, res) => {
 
 router.get("/export/products", async (req, res) => {
     try {
-        const products = await Product.find().sort({ category: 1, name: 1 }).lean();
+        const products = await Product.find().populate("category_id", "name").sort({ name: 1 }).lean();
         const rows = products.map(p => ({
-            name: p.name, category: p.category, price: p.price,
-            salePrice: p.salePrice || "", stock: p.stock, sold: p.sold,
-            isActive: p.isActive ? "Có" : "Không",
-            createdAt: new Date(p.createdAt).toLocaleString("vi-VN"),
+            name: p.name,
+            category: p.category_id?.name || "",
+            price: p.price,
+            actualStock: p.actual_stock,
+            lockedStock: p.locked_stock,
+            isActive: p.is_active ? "Có" : "Không",
+            createdAt: new Date(p.created_at).toLocaleString("vi-VN"),
         }));
-        const headers = ["name", "category", "price", "salePrice", "stock", "sold", "isActive", "createdAt"];
+        const headers = ["name", "category", "price", "actualStock", "lockedStock", "isActive", "createdAt"];
         res.setHeader("Content-Type", "text/csv; charset=utf-8");
         res.setHeader("Content-Disposition", `attachment; filename="products_${Date.now()}.csv"`);
         res.send("\uFEFF" + toCSV(rows, headers));
@@ -202,12 +278,12 @@ router.get("/export/products", async (req, res) => {
 
 router.get("/export/users", async (req, res) => {
     try {
-        const users = await User.find().select("-password").sort({ createdAt: -1 }).lean();
+        const users = await User.find().select("-password_hash -refresh_token").sort({ created_at: -1 }).lean();
         const rows = users.map(u => ({
-            fullName: u.fullName, email: u.email, phone: u.phone || "",
-            role: u.role, authProvider: u.authProvider,
-            isActive: u.isActive ? "Có" : "Không",
-            createdAt: new Date(u.createdAt).toLocaleString("vi-VN"),
+            fullName: u.full_name, email: u.email, phone: u.phone || "",
+            role: u.role, authProvider: u.google_id ? "google" : "local",
+            isActive: u.is_active !== false ? "Có" : "Không",
+            createdAt: new Date(u.created_at).toLocaleString("vi-VN"),
         }));
         const headers = ["fullName", "email", "phone", "role", "authProvider", "isActive", "createdAt"];
         res.setHeader("Content-Type", "text/csv; charset=utf-8");

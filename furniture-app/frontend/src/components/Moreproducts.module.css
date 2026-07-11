@@ -1,0 +1,106 @@
+.section {
+    padding: 72px 40px 96px;
+    background: var(--color-cream);
+}
+
+@media (max-width: 640px) {
+    .section {
+        padding: 48px 20px 64px;
+    }
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    color: var(--color-espresso);
+    margin: 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.grid {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card {
+    position: relative;
+    border: none;
+    padding: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    height: 260px;
+    width: 100%;
+    display: block;
+}
+
+.skeleton {
+    composes: card;
+    background: var(--color-beige);
+}
+
+.image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.card:hover .image {
+    transform: scale(1.06);
+}
+
+.scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(76, 43, 8, 0.55) 0%, rgba(76, 43, 8, 0) 45%);
+}
+
+.labelChip {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(250, 247, 242, 0.92);
+    color: var(--color-espresso);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+}
+
+.countText {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    color: var(--color-cream);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}

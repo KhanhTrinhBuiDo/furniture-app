@@ -1,156 +1,114 @@
 import express from "express";
 import Warranty from "../models/Warranty.js";
 import Order from "../models/Order.js";
-import Product from "../models/Product.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ─── Tạo warranty sau khi đơn hàng hoàn tất ──────────────────────────────────
-// Gọi nội bộ từ orders.js khi status → "completed"
+const WARRANTY_MONTHS = 12; // mặc định — model mới không có field warrantyMonths/product-specific
+
+// GHI CHÚ QUAN TRỌNG: Warranty model mới (theo tài liệu schema) chỉ có
+// order_id/product_id/start_date/end_date — KHÔNG còn events[]/warrantyMonths/
+// productName/productImg/purchasePrice như bản cũ. Nghĩa là:
+//   - Không còn lưu "timeline" nhắc lịch bảo trì/mốc tri ân (loyalty_reward,
+//     maintenance_due...) — WarrantyPage.jsx cũ hiển thị các mốc này sẽ không
+//     còn dữ liệu thật, phải bớt tính năng hoặc cần bổ sung lại field.
+//   - Tên/ảnh sản phẩm, giá mua không snapshot — phải populate product_id
+//     hiện tại (nếu sản phẩm bị xoá/ẩn, populate sẽ null).
+// Bên dưới, "daysLeft"/"status" vẫn được TÍNH TOÁN LÚC ĐỌC (không lưu DB),
+// giữ đúng tinh thần bản cũ cho phần này.
+
 export async function createWarrantiesForOrder(orderId) {
     try {
-        const order = await Order.findById(orderId).populate("items.product");
+        const order = await Order.findById(orderId);
         if (!order) return;
 
-        const warrantyMonths = 12; // mặc định — có thể lấy từ Product.warrantyMonths sau
-
         for (const item of order.items) {
-            if (!item.product) continue;
+            const exists = await Warranty.findOne({ order_id: order._id, product_id: item.product_id });
+            if (exists) continue; // compound unique index (order_id, product_id) cũng chặn ở tầng DB
 
-            // Tránh tạo duplicate
-            const exists = await Warranty.findOne({ order: order._id, product: item.product._id });
-            if (exists) continue;
-
-            const events = Warranty.buildTimeline(order.paidAt || order.createdAt, warrantyMonths);
+            const start_date = new Date();
+            const end_date = new Date(start_date);
+            end_date.setMonth(end_date.getMonth() + WARRANTY_MONTHS);
 
             await Warranty.create({
-                user: order.user,
-                order: order._id,
-                product: item.product._id,
-                orderCode: order.orderCode,
-                productName: item.name,
-                productImg: item.img || "",
-                purchasePrice: item.price,
-                warrantyMonths,
-                purchasedAt: order.paidAt || order.createdAt,
-                warrantyStartAt: order.paidAt || order.createdAt,
-                warrantyEndAt: (() => {
-                    const d = new Date(order.paidAt || order.createdAt);
-                    d.setMonth(d.getMonth() + warrantyMonths);
-                    return d;
-                })(),
-                events,
+                order_id: order._id,
+                product_id: item.product_id,
+                start_date,
+                end_date,
             });
         }
-        console.log(`✅ Warranty created for order ${order.orderCode}`);
+        console.log(`✅ Warranty created for order ${order.tracking_token}`);
     } catch (err) {
         console.error("Create warranty error:", err.message);
     }
 }
 
-// ─── GET /api/warranty/my — Timeline bảo hành của user ───────────────────────
+function withComputed(w) {
+    const now = new Date();
+    const daysLeft = Math.ceil((new Date(w.end_date) - now) / (1000 * 60 * 60 * 24));
+    return {
+        ...w,
+        daysLeft,
+        status: daysLeft <= 0 ? "expired" : daysLeft <= 30 ? "expiring_soon" : "active",
+        progressPercent: Math.max(0, Math.min(100, (daysLeft / (WARRANTY_MONTHS * 30.5)) * 100)),
+    };
+}
+
+// ─── GET /api/warranty/my ─────────────────────────────────────────────────────
 router.get("/my", protect, async (req, res) => {
     try {
-        const { status } = req.query;
-        const filter = { user: req.user._id };
-        if (status) filter.status = status;
+        const orders = await Order.find({ user_id: req.user._id }).select("_id").lean();
+        const orderIds = orders.map(o => o._id);
 
-        const warranties = await Warranty.find(filter)
-            .sort({ warrantyEndAt: 1 })
-            .populate("product", "name img category")
+        const warranties = await Warranty.find({ order_id: { $in: orderIds } })
+            .sort({ end_date: 1 })
+            .populate("product_id", "name image")
+            .populate("order_id", "tracking_token")
             .lean();
 
-        const now = new Date();
-        const updated = warranties.map(w => {
-            const daysLeft = Math.ceil((new Date(w.warrantyEndAt) - now) / (1000 * 60 * 60 * 24));
-            return {
-                ...w,
-                daysLeft,
-                status: daysLeft <= 0 ? "expired" : daysLeft <= 30 ? "expiring_soon" : "active",
-                progressPercent: Math.max(0, Math.min(100,
-                    (daysLeft / w.warrantyMonths / 30.5) * 100
-                )),
-            };
-        });
-
-        res.json({ success: true, warranties: updated });
+        res.json({ success: true, warranties: warranties.map(withComputed) });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
     }
 });
 
-// ─── GET /api/warranty/my/:id — Chi tiết 1 warranty ─────────────────────────
+// ─── GET /api/warranty/my/:id ─────────────────────────────────────────────────
 router.get("/my/:id", protect, async (req, res) => {
     try {
-        const warranty = await Warranty.findOne({ _id: req.params.id, user: req.user._id })
-            .populate("product", "name img category description")
-            .populate("order", "orderCode status createdAt");
+        const warranty = await Warranty.findById(req.params.id)
+            .populate("product_id", "name image description")
+            .populate("order_id", "tracking_token status user_id");
 
-        if (!warranty) return res.status(404).json({ message: "Không tìm thấy thông tin bảo hành" });
+        if (!warranty || String(warranty.order_id?.user_id) !== String(req.user._id)) {
+            return res.status(404).json({ message: "Không tìm thấy thông tin bảo hành" });
+        }
 
-        const now = new Date();
-        const daysLeft = Math.ceil((new Date(warranty.warrantyEndAt) - now) / (1000 * 60 * 60 * 24));
+        res.json({ success: true, warranty: withComputed(warranty.toObject()) });
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi máy chủ" });
+    }
+});
 
+// ─── Admin: GET /api/warranty ─────────────────────────────────────────────────
+router.get("/", protect, requireAdmin, async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        const [warranties, total] = await Promise.all([
+            Warranty.find()
+                .populate("product_id", "name")
+                .populate("order_id", "tracking_token user_id")
+                .sort({ created_at: -1 }).skip(skip).limit(Number(limit)),
+            Warranty.countDocuments(),
+        ]);
         res.json({
             success: true,
-            warranty: {
-                ...warranty.toObject(),
-                daysLeft,
-                status: daysLeft <= 0 ? "expired" : daysLeft <= 30 ? "expiring_soon" : "active",
-            },
+            warranties: warranties.map(w => withComputed(w.toObject())),
+            pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
         });
     } catch (err) {
         res.status(500).json({ message: "Lỗi máy chủ" });
-    }
-});
-
-// ─── Admin: GET /api/warranty — Tất cả warranties ────────────────────────────
-router.get("/", protect, requireAdmin, async (req, res) => {
-    try {
-        const { status, page = 1, limit = 20 } = req.query;
-        const filter = {};
-        if (status) filter.status = status;
-
-        const skip = (Number(page) - 1) * Number(limit);
-        const [warranties, total] = await Promise.all([
-            Warranty.find(filter)
-                .populate("user", "fullName email")
-                .populate("product", "name category")
-                .sort({ createdAt: -1 })
-                .skip(skip).limit(Number(limit)),
-            Warranty.countDocuments(filter),
-        ]);
-
-        res.json({ success: true, warranties, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
-    } catch (err) {
-        res.status(500).json({ message: "Lỗi máy chủ" });
-    }
-});
-
-// ─── Admin: POST /api/warranty/send-reminders — Gửi nhắc nhở thủ công ────────
-router.post("/send-reminders", protect, requireAdmin, async (req, res) => {
-    try {
-        const now = new Date();
-        const sent = [];
-
-        const warranties = await Warranty.find({ status: { $ne: "expired" } });
-
-        for (const w of warranties) {
-            for (const ev of w.events) {
-                if (!ev.isSent && new Date(ev.scheduledAt) <= now) {
-                    console.log(`📧 [WARRANTY] ${ev.title} → user ${w.user}`);
-                    ev.isSent = true;
-                    ev.sentAt = now;
-                    sent.push({ warrantyId: w._id, event: ev.title });
-                }
-            }
-            await w.save();
-        }
-
-        res.json({ success: true, sent: sent.length, events: sent });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
     }
 });
 

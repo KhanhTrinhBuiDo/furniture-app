@@ -25,6 +25,13 @@
     --color-wood: #8B5E3C;
     --color-coffee: #6D3914;
 
+    /* Amore Home — bảng màu "Coffee" mới (dùng cho Navbar/Footer/Homepage) */
+    --color-vanilla: #D7BDA6;
+    --color-caramel: #AB7743;
+    --color-almond: #B7957F;
+    --color-mocca: #84593D;
+    --color-espresso: #4C2B08;
+
     /* Semantic */
     --color-success: #6B7C5C;
     --color-warn: #E67E22;

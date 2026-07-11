@@ -1,0 +1,221 @@
+.footer {
+    background: var(--color-coffee);
+    color: rgba(250, 247, 242, 0.75);
+    padding: 64px 0 32px;
+}
+
+.inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+@media (max-width: 640px) {
+    .inner {
+        padding: 0 20px;
+    }
+}
+
+/* ─── Grid ───────────────────────────────────────────────────────────────── */
+.grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.6fr;
+    gap: 48px;
+    margin-bottom: 56px;
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 40px;
+    }
+}
+
+@media (max-width: 560px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Col 1 — Brand ──────────────────────────────────────────────────────── */
+.brandBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brandIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: var(--color-vanilla);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.brandName {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--color-cream);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.addressText,
+.contactText {
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(250, 247, 242, 0.55);
+    margin: 0 0 8px;
+}
+
+.socialRow {
+    display: flex;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.socialLink {
+    color: rgba(250, 247, 242, 0.4);
+    transition: color 0.2s;
+    display: flex;
+}
+
+.socialLink:hover {
+    color: var(--color-vanilla);
+}
+
+/* ─── Col headings + lists ───────────────────────────────────────────────── */
+.colHeading {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-cream);
+    margin: 0 0 20px;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.listItem {
+    margin-bottom: 12px;
+}
+
+.linkBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: rgba(250, 247, 242, 0.5);
+    font-family: var(--font-body);
+    padding: 0;
+    text-align: left;
+    transition: color 0.2s;
+}
+
+.linkBtn:hover {
+    color: var(--color-vanilla);
+}
+
+/* ─── Col 4 — Newsletter ─────────────────────────────────────────────────── */
+.newsletterText {
+    font-size: 12px;
+    color: rgba(250, 247, 242, 0.55);
+    line-height: 1.7;
+    margin: 0 0 20px;
+}
+
+.subscribedText {
+    font-size: 13px;
+    color: #8FA67A;
+    font-weight: 600;
+}
+
+.newsletterForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.newsletterInput {
+    background: rgba(250, 247, 242, 0.08);
+    border: 1px solid rgba(250, 247, 242, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--color-cream);
+    font-size: 12px;
+    font-family: var(--font-body);
+    outline: none;
+}
+
+.newsletterInput::placeholder {
+    color: rgba(250, 247, 242, 0.4);
+}
+
+.subscribeBtn {
+    background: var(--color-vanilla);
+    color: var(--color-espresso);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: opacity 0.2s;
+}
+
+.subscribeBtn:hover {
+    opacity: 0.85;
+}
+
+/* ─── Divider row ────────────────────────────────────────────────────────── */
+.bottomRow {
+    border-top: 1px solid rgba(250, 247, 242, 0.12);
+    padding-top: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.copyright {
+    font-size: 11px;
+    color: rgba(250, 247, 242, 0.45);
+    margin: 0;
+}
+
+.bottomLinks {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.bottomLink {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: rgba(250, 247, 242, 0.45);
+    font-family: var(--font-body);
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.bottomLink:hover {
+    color: var(--color-vanilla);
+}

@@ -4,7 +4,7 @@ import { useStore } from "../../../../store/store";
 const API = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products`;
 
 const CATEGORIES = ["LIVING ROOM", "KITCHEN", "BEDROOM", "BATHROOM", "DECORATION", "DINING ROOM"];
-const STYLES = ["Tối giản", "Hàn Quốc", "Scandinavian", "Hiện đại", "Đông Dương", "Cổ điển", "Tropical"];
+const STYLES = ["Tối giản", "Hàn Quốc", "Scandinavian", "Hiện đại", "Đông Dương", "Cổ điển", "Tropical", "Matcha"];
 
 const EMPTY_FORM = {
     name: "", description: "", price: "", salePrice: "",

@@ -19,15 +19,22 @@ const wishlistSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   full_name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  phone: { type: String, unique: true, sparse: true, trim: true }, 
+  phone: { type: String, unique: true, sparse: true, trim: true },
   password_hash: { type: String, default: null },
   role: { type: String, required: true, enum: ["User", "Admin"], default: "User" },
   google_id: { type: String, unique: true, sparse: true },
   refresh_token: { type: String, default: null },
   addresses: [addressSchema],
   style_ids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Style' }],
-  wishlist: [wishlistSchema]
-}, { 
+  wishlist: [wishlistSchema],
+  // ─── Bổ sung so với tài liệu schema gốc (đánh dấu rõ) ──────────────────────
+  // Cả 2 field dưới đây KHÔNG có trong bảng mô tả collection "users" ban đầu,
+  // nhưng được thêm vì frontend (Navbar/Footer/ProfilePage/AdminUsers) đã xây
+  // dựng sẵn quanh 2 tính năng này (ảnh đại diện + khoá/mở tài khoản). Có thể
+  // xoá an toàn nếu không cần — không ảnh hưởng field nào khác.
+  avatar: { type: String, default: "" },
+  is_active: { type: Boolean, default: true },
+}, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 

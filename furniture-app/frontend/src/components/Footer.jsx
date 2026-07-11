@@ -1,15 +1,6 @@
 import { useState } from "react";
 import { useStore } from "../../../store/store";
-
-const C = {
-    bg: "#4A2C1A",
-    text: "rgba(250,247,242,0.75)",
-    dim: "rgba(250,247,242,0.35)",
-    heading: "#FAF7F2",
-    accent: "#C4A882",
-    border: "rgba(250,247,242,0.10)",
-    input: "rgba(250,247,242,0.06)",
-};
+import styles from "./Footer.module.css";
 
 const NAV_LINKS = [
     { label: "Trang chủ", page: "home" },
@@ -82,55 +73,38 @@ export default function Footer() {
     };
 
     return (
-        <footer style={{ background: C.bg, color: C.text, paddingTop: 64, paddingBottom: 32 }}>
-            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 40px" }}>
+        <footer className={styles.footer}>
+            <div className={styles.inner}>
 
                 {/* ── 4-column grid ─────────────────────────────────────────────── */}
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1fr 1fr 1.6fr",
-                    gap: 48,
-                    marginBottom: 56,
-                }}>
+                <div className={styles.grid}>
 
                     {/* Col 1 — Brand */}
                     <div>
-                        <button
-                            onClick={() => setPage("home")}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}
-                        >
-                            <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
-                                <rect width="28" height="28" rx="4" fill="#C4A882" />
-                                <path d="M7 20V10l7-4 7 4v10" stroke="#4A2C1A" strokeWidth="1.5" strokeLinejoin="round" />
-                                <rect x="11" y="14" width="6" height="6" rx="1" fill="#4A2C1A" />
-                            </svg>
-                            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", color: C.heading, fontWeight: 700, letterSpacing: "0.03em" }}>
-                                Amore Home.
+                        <button onClick={() => setPage("home")} className={styles.brandBtn}>
+                            <span className={styles.brandIcon}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4C2B08" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 11l9-8 9 8" />
+                                    <path d="M5 10v10a1 1 0 001 1h12a1 1 0 001-1V10" />
+                                </svg>
                             </span>
+                            <span className={styles.brandName}>Amore Home</span>
                         </button>
 
-                        <p style={{ fontSize: 12, lineHeight: 1.8, color: C.dim, marginBottom: 8 }}>
+                        <p className={styles.addressText}>
                             88 Đường Nguyễn Huệ, Phường Bến Nghé<br />
                             Quận 1, TP. Hồ Chí Minh
                         </p>
 
-                        <p style={{ fontSize: 12, lineHeight: 1.8, color: C.dim }}>
+                        <p className={styles.contactText}>
                             support@amorehome.vn<br />
                             +84 28 3822 9999
                         </p>
 
                         {/* Social icons */}
-                        <div style={{ display: "flex", gap: 14, marginTop: 24 }}>
+                        <div className={styles.socialRow}>
                             {SOCIAL.map((s) => (
-                                <a
-                                    key={s.name}
-                                    href={s.href}
-                                    aria-label={s.name}
-                                    title={s.name}
-                                    style={{ color: C.dim, transition: "color 0.2s", display: "flex" }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.color = C.accent)}
-                                    onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
-                                >
+                                <a key={s.name} href={s.href} aria-label={s.name} title={s.name} className={styles.socialLink}>
                                     {s.icon}
                                 </a>
                             ))}
@@ -139,16 +113,11 @@ export default function Footer() {
 
                     {/* Col 2 — Menu */}
                     <div>
-                        <h4 style={styles.colHeading}>Menu</h4>
-                        <ul style={styles.list}>
+                        <h4 className={styles.colHeading}>Menu</h4>
+                        <ul className={styles.list}>
                             {NAV_LINKS.map((l) => (
-                                <li key={l.label} style={styles.listItem}>
-                                    <button
-                                        onClick={() => setPage(l.page)}
-                                        style={styles.linkBtn}
-                                        onMouseEnter={(e) => (e.currentTarget.style.color = C.accent)}
-                                        onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
-                                    >
+                                <li key={l.label} className={styles.listItem}>
+                                    <button onClick={() => setPage(l.page)} className={styles.linkBtn}>
                                         {l.label}
                                     </button>
                                 </li>
@@ -158,16 +127,11 @@ export default function Footer() {
 
                     {/* Col 3 — Account */}
                     <div>
-                        <h4 style={styles.colHeading}>Tài khoản & Dịch vụ</h4>
-                        <ul style={styles.list}>
+                        <h4 className={styles.colHeading}>Tài khoản & Dịch vụ</h4>
+                        <ul className={styles.list}>
                             {ACCOUNT_LINKS.map((l) => (
-                                <li key={l.label} style={styles.listItem}>
-                                    <button
-                                        onClick={() => setPage(l.page)}
-                                        style={styles.linkBtn}
-                                        onMouseEnter={(e) => (e.currentTarget.style.color = C.accent)}
-                                        onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
-                                    >
+                                <li key={l.label} className={styles.listItem}>
+                                    <button onClick={() => setPage(l.page)} className={styles.linkBtn}>
                                         {l.label}
                                     </button>
                                 </li>
@@ -177,56 +141,24 @@ export default function Footer() {
 
                     {/* Col 4 — Newsletter */}
                     <div>
-                        <h4 style={styles.colHeading}>Stay Updated</h4>
-                        <p style={{ fontSize: 12, color: C.dim, lineHeight: 1.7, marginBottom: 20 }}>
+                        <h4 className={styles.colHeading}>Stay Updated</h4>
+                        <p className={styles.newsletterText}>
                             Nhận bộ sưu tập mới nhất, ý tưởng nội thất và ưu đãi độc quyền.
                         </p>
 
                         {subscribed ? (
-                            <p style={{ fontSize: 13, color: "#8FA67A", fontWeight: 500 }}>
-                                ✓ Đăng ký thành công!
-                            </p>
+                            <p className={styles.subscribedText}>✓ Đăng ký thành công!</p>
                         ) : (
-                            <div
-                                onSubmit={handleSubscribe}
-                                style={{ display: "flex", flexDirection: "column", gap: 10 }}
-                            >
+                            <div className={styles.newsletterForm}>
                                 <input
                                     type="email"
                                     placeholder="Email của bạn"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && handleSubscribe(e)}
-                                    style={{
-                                        background: C.input,
-                                        border: `1px solid ${C.border}`,
-                                        borderRadius: 4,
-                                        padding: "10px 14px",
-                                        color: C.heading,
-                                        fontSize: 12,
-                                        fontFamily: "'Poppins', sans-serif",
-                                        outline: "none",
-                                    }}
+                                    className={styles.newsletterInput}
                                 />
-                                <button
-                                    onClick={handleSubscribe}
-                                    style={{
-                                        background: C.accent,
-                                        color: C.bg,
-                                        border: "none",
-                                        borderRadius: 4,
-                                        padding: "10px 0",
-                                        fontSize: 11,
-                                        fontWeight: 600,
-                                        letterSpacing: "0.1em",
-                                        textTransform: "uppercase",
-                                        cursor: "pointer",
-                                        fontFamily: "'Poppins', sans-serif",
-                                        transition: "opacity 0.2s",
-                                    }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-                                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                                >
+                                <button onClick={handleSubscribe} className={styles.subscribeBtn}>
                                     Đăng ký
                                 </button>
                             </div>
@@ -235,74 +167,20 @@ export default function Footer() {
                 </div>
 
                 {/* ── Divider ─────────────────────────────────────────────────── */}
-                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-                    <p style={{ fontSize: 11, color: C.dim, margin: 0 }}>
+                <div className={styles.bottomRow}>
+                    <p className={styles.copyright}>
                         © {new Date().getFullYear()} Amore Home Furniture. All rights reserved.
                     </p>
-                    <div style={{ display: "flex", gap: 24 }}>
+                    <div className={styles.bottomLinks}>
                         {["Chính sách bảo mật", "Điều khoản sử dụng", "Cookie"].map((t) => (
-                            <button
-                                key={t}
-                                style={{ ...styles.linkBtn, fontSize: 11 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.color = C.accent)}
-                                onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
-                            >
-                                {t}
-                            </button>
+                            <button key={t} className={styles.bottomLink}>{t}</button>
                         ))}
-                        <button
-                            onClick={() => setPage("admin-login")}
-                            style={{ ...styles.linkBtn, fontSize: 11 }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = C.accent)}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
-                        >
+                        <button onClick={() => setPage("admin-login")} className={styles.bottomLink}>
                             Admin
                         </button>
                     </div>
                 </div>
             </div>
-
-            {/* Responsive */}
-            <style>{`
-        @media (max-width: 900px) {
-          .footer-grid { grid-template-columns: 1fr 1fr !important; }
-        }
-        @media (max-width: 560px) {
-          .footer-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
         </footer>
     );
 }
-
-// ─── Shared styles ───────────────────────────────────────────────────────────
-const styles = {
-    colHeading: {
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
-        color: "#FAF7F2",
-        marginBottom: 20,
-        margin: "0 0 20px 0",
-    },
-    list: {
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-    },
-    listItem: {
-        marginBottom: 12,
-    },
-    linkBtn: {
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        fontSize: 12,
-        color: "rgba(250,247,242,0.35)",
-        fontFamily: "'Poppins', sans-serif",
-        padding: 0,
-        transition: "color 0.2s",
-        textAlign: "left",
-    },
-};

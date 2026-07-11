@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useStore } from "../../../store/store";
 import ProductCard from "../components/ProductCard";
 import FadeUp from "../components/FadeUp";
+import css from "./ShopPage.module.css";
 
 const C = {
   cream: "#FAF7F2", beige: "#F0E8DC", dark: "#1A1A2E",
@@ -26,10 +27,39 @@ const SORT_OPTIONS = [
 // Khớp chính xác với danh sách STYLES trong AdminProducts.jsx — vì backend
 // match nguyên văn (regex, không phân biệt hoa/thường) nên các tag gợi ý
 // này phải trùng với giá trị Admin thực sự chọn khi tạo sản phẩm.
-const STYLE_SUGGESTIONS = ["Tối giản", "Hàn Quốc", "Scandinavian", "Hiện đại", "Đông Dương", "Cổ điển", "Tropical"];
+// Đã thêm "Matcha" để khớp với nút "More" ở MatchaConcept trên trang chủ —
+// nhớ cập nhật tương ứng trong AdminProducts.jsx (mảng STYLES) khi gắn style
+// này cho sản phẩm.
+const STYLE_SUGGESTIONS = ["Tối giản", "Hàn Quốc", "Scandinavian", "Hiện đại", "Đông Dương", "Cổ điển", "Tropical", "Matcha"];
+
+// ─── Concept hero — hiện khi vào Shop từ nút "More" ở Tropical/Matcha Concept ─
+// Key phải khớp CHÍNH XÁC với giá trị setSelectedStyle() gọi từ
+// TropicalConcept.jsx / MatchaConcept.jsx.
+const CONCEPT_HERO = {
+  Tropical: {
+    title: "Tropical Concept",
+    desc: "Nội thất được chọn lọc từ chất liệu tự nhiên cao cấp nhất, phù hợp cho ngôi nhà mơ ước mang hơi thở nhiệt đới của bạn.",
+    images: [
+      { src: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&h=900&fit=crop", tall: true },
+      { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb3?w=700&h=440&fit=crop" },
+      { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=700&h=440&fit=crop" },
+    ],
+    banner: "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=1600&h=900&fit=crop",
+  },
+  Matcha: {
+    title: "Matcha Concept",
+    desc: "Không gian sống tràn ngập sắc xanh matcha dịu mắt, kết hợp chất liệu tự nhiên và thiết kế hiện đại, mang lại cảm giác bình yên.",
+    images: [
+      { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&h=900&fit=crop", tall: true },
+      { src: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=700&h=440&fit=crop" },
+      { src: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=700&h=440&fit=crop" },
+    ],
+    banner: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb3?w=1600&h=900&fit=crop",
+  },
+};
 
 export default function ShopPage() {
-  const { searchQuery, setSearchQuery, navigate, setSelectedProduct } = useStore();
+  const { searchQuery, setSearchQuery, navigate, setSelectedProduct, selectedStyle, setSelectedStyle } = useStore();
 
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -37,6 +67,7 @@ export default function ShopPage() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [conceptStyle, setConceptStyle] = useState(null); // style đến từ nút "More" — giữ để hiện hero, tách khỏi filters.style vì filters.style người dùng có thể tự xoá/đổi
   const [filters, setFilters] = useState({
     category: "",
     priceIdx: 0,
@@ -44,6 +75,22 @@ export default function ShopPage() {
     style: "",
   });
   const [localSearch, setLocalSearch] = useState(searchQuery || "");
+  const productsTopRef = useRef(null);
+
+  // Nhận style filter một lần từ nút "More" ở Tropical/Matcha Concept (trang chủ)
+  useEffect(() => {
+    if (selectedStyle) {
+      setFilters(f => ({ ...f, style: selectedStyle }));
+      setConceptStyle(selectedStyle);
+      setSelectedStyle(null); // dùng xong xoá ngay, tránh áp lại ở lần vào Shop tiếp theo
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Nếu người dùng tự đổi/xoá bộ lọc phong cách thì ẩn banner concept
+  useEffect(() => {
+    if (conceptStyle && filters.style !== conceptStyle) setConceptStyle(null);
+  }, [filters.style, conceptStyle]);
 
   // Sync search từ Navbar
   useEffect(() => { if (searchQuery) setLocalSearch(searchQuery); }, [searchQuery]);
@@ -101,8 +148,46 @@ export default function ShopPage() {
 
   const activeFiltersCount = (filters.category ? 1 : 0) + (filters.priceIdx !== 0 ? 1 : 0) + (filters.style.trim() ? 1 : 0);
 
+  const concept = conceptStyle ? CONCEPT_HERO[conceptStyle] : null;
+
   return (
     <div style={{ background: C.cream, minHeight: "100vh" }}>
+
+      {/* ── Concept hero (chỉ hiện khi vào từ nút "More") ─────────────────── */}
+      {concept && (
+        <>
+          <div className={`${css.conceptHero} ${css[`conceptHero${conceptStyle}`]}`}>
+            <div className={css.conceptTextCol}>
+              <FadeUp>
+                <div className={css.conceptCard}>
+                  <h1 className={`${css.conceptTitle} ${css[`conceptTitle${conceptStyle}`]}`}>{concept.title}</h1>
+                  <p className={`${css.conceptDesc} ${css[`conceptDesc${conceptStyle}`]}`}>{concept.desc}</p>
+                  <button
+                    onClick={() => productsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    className={`${css.conceptBtn} ${css[`conceptBtn${conceptStyle}`]}`}
+                  >
+                    Shop Now
+                  </button>
+                </div>
+              </FadeUp>
+            </div>
+
+            <div className={css.conceptCollage}>
+              {concept.images.map((img, i) => (
+                <div key={i} className={`${css.conceptCell} ${img.tall ? css.conceptCellTall : ""}`}>
+                  <img src={img.src} alt="" className={css.conceptImg} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={css.conceptBanner}>
+            <img src={concept.banner} alt={concept.title} className={css.conceptBannerImg} />
+          </div>
+        </>
+      )}
+
+      <div ref={productsTopRef} />
 
       {/* Header */}
       <div style={{ background: C.beige, borderBottom: `1px solid ${C.sand}`, padding: "36px 40px 28px", textAlign: "center" }}>

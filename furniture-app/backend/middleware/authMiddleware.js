@@ -10,12 +10,15 @@ export async function protect(req, res, next) {
         }
 
         const decoded = verifyToken(token);
-        const user = await User.findById(decoded.id).select("-password -resetOTP -resetOTPExpires");
+        // GHI CHÚ: model User mới không còn field password/resetOTP*, và tên
+        // field mật khẩu đổi thành password_hash — cập nhật lại danh sách loại trừ.
+        const user = await User.findById(decoded.id).select("-password_hash -refresh_token");
 
         if (!user) {
             return res.status(401).json({ message: "Tài khoản không tồn tại" });
         }
-        if (!user.isActive) {
+        // GHI CHÚ: model User mới dùng is_active (snake_case) thay vì isActive.
+        if (user.is_active === false) {
             return res.status(403).json({ message: "Tài khoản đã bị khóa" });
         }
 
@@ -28,7 +31,9 @@ export async function protect(req, res, next) {
 
 // ─── Require Admin ────────────────────────────────────────────────────────────
 export function requireAdmin(req, res, next) {
-    if (req.user?.role !== "admin") {
+    // GHI CHÚ: model User mới dùng enum ["User", "Admin"] viết hoa chữ cái đầu
+    // (không phải "admin" chữ thường như bản cũ).
+    if (req.user?.role !== "Admin") {
         return res.status(403).json({ message: "Chỉ Admin mới có quyền truy cập" });
     }
     next();
@@ -40,7 +45,7 @@ export async function optionalAuth(req, res, next) {
         const token = getTokenFromRequest(req);
         if (token) {
             const decoded = verifyToken(token);
-            req.user = await User.findById(decoded.id).select("-password");
+            req.user = await User.findById(decoded.id).select("-password_hash -refresh_token");
         }
     } catch {
         // không làm gì — optional

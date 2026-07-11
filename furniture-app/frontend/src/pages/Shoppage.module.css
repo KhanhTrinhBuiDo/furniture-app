@@ -1,0 +1,149 @@
+/* ─── Concept hero (hiện khi vào Shop từ nút "More" ở Tropical/Matcha Concept) ─ */
+.conceptHero {
+    display: flex;
+    min-height: 70vh;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.conceptHeroTropical {
+    background: #E4C9A8;
+}
+
+.conceptHeroMatcha {
+    background: #D9E2C4;
+}
+
+@media (max-width: 640px) {
+    .conceptHero {
+        padding: 24px 16px;
+        min-height: auto;
+    }
+}
+
+.conceptTextCol {
+    flex: 1;
+    min-width: 280px;
+}
+
+.conceptCard {
+    background: rgba(255, 255, 255, 0.55);
+    padding: 40px;
+    max-width: 420px;
+    border-radius: var(--radius-lg);
+}
+
+@media (max-width: 480px) {
+    .conceptCard {
+        padding: 28px 20px;
+        max-width: none;
+    }
+}
+
+.conceptTitle {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.15;
+    text-transform: uppercase;
+}
+
+.conceptTitleTropical {
+    color: #6D3914;
+}
+
+.conceptTitleMatcha {
+    color: #4F5D3A;
+}
+
+.conceptDesc {
+    font-size: 14px;
+    margin: 20px 0 28px;
+    line-height: 1.8;
+}
+
+.conceptDescTropical {
+    color: #4A2C1A;
+}
+
+.conceptDescMatcha {
+    color: #3E4A2E;
+}
+
+.conceptBtn {
+    color: #fff;
+    padding: 14px 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-family: var(--font-body);
+}
+
+.conceptBtn:hover {
+    opacity: 0.88;
+}
+
+.conceptBtnTropical {
+    background: #4A2C1A;
+}
+
+.conceptBtnMatcha {
+    background: #4F5D3A;
+}
+
+.conceptCollage {
+    flex: 1.3;
+    min-width: 300px;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    height: 460px;
+}
+
+@media (max-width: 640px) {
+    .conceptCollage {
+        height: 320px;
+    }
+}
+
+.conceptCell {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+}
+
+.conceptCellTall {
+    grid-row: 1 / 3;
+}
+
+.conceptImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ─── Banner ảnh lớn full-width dưới hero ────────────────────────────────── */
+.conceptBanner {
+    width: 100%;
+    height: 60vh;
+    min-height: 320px;
+    max-height: 620px;
+    overflow: hidden;
+}
+
+.conceptBannerImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}

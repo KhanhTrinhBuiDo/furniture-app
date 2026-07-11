@@ -132,6 +132,12 @@ export function StoreProvider({ children }) {
     _setSelectedProductState(prod);
   }, []);
 
+  // ─── Selected style (dùng khi bấm "More" ở Tropical/Matcha Concept) ──────────
+  // Không đồng bộ vào URL — chỉ là tham số điều hướng một lần (ShopPage đọc rồi
+  // tự xoá ngay sau khi áp dụng), giống cách selectedCategory được dùng cho
+  // CategoryPage nhưng không cần lưu lại khi refresh trang.
+  const [selectedStyle, setSelectedStyle] = useState(null);
+
   // ─── Logout ───────────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
@@ -205,6 +211,7 @@ export function StoreProvider({ children }) {
       selectedCategory, setSelectedCategory,
       selectedProduct, setSelectedProduct,
       selectedOrderCode,
+      selectedStyle, setSelectedStyle,
       // Toast
       toast, showToast,
       // Search

@@ -1,0 +1,514 @@
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: var(--color-cream);
+    border-bottom: 1px solid transparent;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.headerScrolled {
+    background: rgba(250, 247, 242, 0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-sand);
+    box-shadow: var(--shadow-sm);
+}
+
+.nav {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .nav {
+        padding: 0 16px;
+    }
+}
+
+/* ─── Logo ───────────────────────────────────────────────────────────────── */
+.logoBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.logoIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: var(--color-vanilla);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.logoText {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--color-espresso);
+    font-weight: 700;
+    display: block;
+    line-height: 1.1;
+    text-align: left;
+}
+
+.logoSub {
+    font-size: 9px;
+    color: var(--color-caramel);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+/* ─── Desktop nav links ──────────────────────────────────────────────────── */
+.desktopNav {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.navLink {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--color-espresso);
+    font-family: var(--font-body);
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s, color 0.2s;
+}
+
+.navLink:hover {
+    background: var(--color-soft);
+    color: var(--color-caramel);
+}
+
+.spacer {
+    flex: 1;
+}
+
+/* ─── Search (desktop, giữ nguyên chức năng cũ) ─────────────────────────── */
+.searchWrap {
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--color-caramel);
+}
+
+.searchInput {
+    padding: 8px 12px 8px 32px;
+    width: 200px;
+    border: 1px solid var(--color-sand);
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: var(--font-body);
+    background: #fff;
+    outline: none;
+    transition: width 0.2s, border-color 0.2s;
+}
+
+.searchInput:focus {
+    width: 260px;
+    border-color: var(--color-caramel);
+}
+
+.mobileSearchBar {
+    padding: 10px 16px;
+    border-top: 1px solid var(--color-beige);
+    background: var(--color-cream);
+}
+
+.mobileSearchInput {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--color-sand);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: var(--font-body);
+    outline: none;
+    box-sizing: border-box;
+}
+
+/* ─── Icon buttons ───────────────────────────────────────────────────────── */
+.icons {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-espresso);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+}
+
+.iconBtn:hover {
+    background: var(--color-soft);
+}
+
+.iconWrap {
+    position: relative;
+}
+
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -6px;
+    background: var(--color-error);
+    color: #fff;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+/* ─── Auth: login button / avatar ───────────────────────────────────────── */
+.loginBtn {
+    background: var(--color-espresso);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.loginBtn:hover {
+    background: var(--color-caramel);
+}
+
+.avatarBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatarImg {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-caramel);
+}
+
+.avatarFallback {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--color-espresso);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ─── Profile dropdown ───────────────────────────────────────────────────── */
+.dropdownAnchor {
+    position: relative;
+}
+
+.dropdown {
+    position: absolute;
+    top: 46px;
+    right: 0;
+    background: #fff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-beige);
+    min-width: 220px;
+    z-index: 200;
+    overflow: hidden;
+}
+
+.dropdownHead {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-beige);
+}
+
+.dropdownName {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-espresso);
+    margin: 0;
+}
+
+.dropdownEmail {
+    font-size: 11px;
+    color: #999;
+    margin: 2px 0 0;
+}
+
+.roleTag {
+    font-size: 9px;
+    background: var(--color-espresso);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    display: inline-block;
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+}
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 11px 16px;
+    font-size: 13px;
+    color: var(--color-espresso);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.dropdownItem:hover {
+    background: var(--color-soft);
+}
+
+.dropdownItemDanger {
+    composes: dropdownItem;
+    color: var(--color-error);
+    border-top: 1px solid var(--color-beige);
+}
+
+.dropdownItemDanger:hover {
+    background: #FDECEC;
+}
+
+/* ─── Hamburger (mobile only) ────────────────────────────────────────────── */
+.hamburgerBtn {
+    composes: iconBtn;
+    display: none;
+}
+
+/* ─── Overlay + Drawer ───────────────────────────────────────────────────── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 300;
+    backdrop-filter: blur(2px);
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 88vw);
+    background: var(--color-cream);
+    z-index: 301;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.drawerOpen {
+    transform: translateX(0);
+}
+
+.drawerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--color-beige);
+}
+
+.drawerBrand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.drawerClose {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #bbb;
+}
+
+.drawerUser {
+    padding: 16px 20px;
+    background: var(--color-soft);
+    border-bottom: 1px solid var(--color-beige);
+}
+
+.drawerUserRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.drawerAvatarImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.drawerAvatarFallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-espresso);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.drawerUserName {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-espresso);
+    margin: 0;
+}
+
+.drawerUserEmail {
+    font-size: 11px;
+    color: #999;
+    margin: 0;
+}
+
+.drawerNav {
+    flex: 1;
+    padding: 12px 0;
+}
+
+.drawerItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 13px 20px;
+    font-size: 14px;
+    color: var(--color-espresso);
+    font-family: var(--font-body);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background 0.15s;
+}
+
+.drawerItem:hover {
+    background: var(--color-soft);
+}
+
+.drawerItemMain {
+    composes: drawerItem;
+    font-weight: 500;
+}
+
+.drawerItemIcons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.drawerBadge {
+    background: var(--color-caramel);
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.drawerLogoutWrap {
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-beige);
+}
+
+.drawerLogoutBtn {
+    width: 100%;
+    padding: 11px 0;
+    background: none;
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-sm);
+    color: var(--color-error);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+/* ─── Responsive: ẩn/hiện theo breakpoint ───────────────────────────────── */
+@media (max-width: 860px) {
+    .desktopNav {
+        display: none;
+    }
+
+    .searchWrap {
+        display: none;
+    }
+
+    .loginBtn {
+        display: none;
+    }
+
+    .brandSub {
+        display: none;
+    }
+
+    .hamburgerBtn {
+        display: flex;
+    }
+}
