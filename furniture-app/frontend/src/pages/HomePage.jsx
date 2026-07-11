@@ -10,9 +10,9 @@ import styles from "./HomePage.module.css";
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const HERO_IMAGES = [
-  { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb3?w=800", big: true, alt: "Không gian sống chính" },
-  { src: "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800", alt: "Chi tiết nội thất" },
-  { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800", alt: "Phòng ngủ ấm áp" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786046/2368c956087d91863779d1bc06da1eb0_kldy13.jpg", big: true, alt: "Không gian sống chính" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786046/3_x3ovwn.jpg", alt: "Chi tiết nội thất" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786046/2_v4bde5.jpg", alt: "Phòng ngủ ấm áp" },
 ];
 
 export default function HomePage() {

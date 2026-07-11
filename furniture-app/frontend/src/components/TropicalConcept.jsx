@@ -6,11 +6,11 @@ import styles from "./TropicalConcept.module.css";
 // 5 ảnh bố cục mosaic: hàng 1 gồm 2 ảnh rộng, hàng 2 gồm 3 ảnh hẹp (ảnh cuối
 // có nhãn "MORE"). Ảnh minh hoạ dùng chung nguồn Unsplash đã có sẵn trong dự án.
 const tropicalImages = [
-  { src: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&h=700&fit=crop", alt: "Phòng khách tropical" },
-  { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb3?w=900&h=700&fit=crop", alt: "Sân vườn tropical" },
-  { src: "https://images.unsplash.com/photo-1537737711114-ec537f8f4242?w=700&h=560&fit=crop", alt: "Phòng ăn tropical" },
-  { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=700&h=560&fit=crop", alt: "Phòng ngủ tropical" },
-  { src: "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=700&h=560&fit=crop", alt: "Phòng tắm tropical" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786047/CHAIR_wq0rlq.jpg", alt: "Phòng khách tropical" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786050/garden_e3upmi.png", alt: "Phòng khách tropical" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786049/eat_c4n15o.png", alt: "Sân vườn tropical" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786048/bed_iwitsb.png", alt: "Phòng ăn tropical" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786047/bath_oybemr.png", alt: "Phòng ngủ tropical" },
 ];
 
 const CELL_CLASSES = [styles.cellA, styles.cellB, styles.cellC, styles.cellD, styles.cellE];

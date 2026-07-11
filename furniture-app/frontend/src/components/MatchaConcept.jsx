@@ -3,11 +3,11 @@ import { useStore } from "../../../store/store";
 import styles from "./MatchaConcept.module.css";
 
 const matchaImages = [
-  { src: "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=900&h=700&fit=crop", alt: "Phòng khách matcha" },
-  { src: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&h=700&fit=crop", alt: "Sân vườn matcha" },
-  { src: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=700&h=560&fit=crop", alt: "Bếp matcha" },
-  { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb3?w=700&h=560&fit=crop", alt: "Phòng ngủ matcha" },
-  { src: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=700&h=560&fit=crop", alt: "Phòng tắm matcha" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786052/matcha_bed_lw9aof.jpg", alt: "Phòng khách matcha" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786049/garden_matcha_d3ty4z.jpg", alt: "Sân vườn matcha" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786052/matcha_kitchen_wxtfmm.jpg", alt: "Bếp matcha" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786051/matcha_bed_1_kojkav.jpg", alt: "Phòng ngủ matcha" },
+  { src: "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786052/matcha_vs_m7xsga.jpg", alt: "Phòng tắm matcha" },
 ];
 
 const CELL_CLASSES = [styles.cellA, styles.cellB, styles.cellC, styles.cellD, styles.cellE];
