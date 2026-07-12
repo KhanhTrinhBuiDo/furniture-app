@@ -172,7 +172,7 @@ export default function AdminVouchers() {
                         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                             <Row>
                                 <MF label="Mã voucher *" error={errors.code}>
-                                    <MI value={form.code} onChange={v => setForm(p => ({ ...p, code: v.toUpperCase() }))} placeholder="VD: WELCOME10" hasError={!!errors.code} />
+                                    <MI value={form.code} onChange={v => setForm(p => ({ ...p, code: v.toUpperCase() }))} placeholder="" hasError={!!errors.code} />
                                 </MF>
                                 <MF label="Loại">
                                     <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} style={S.select}>

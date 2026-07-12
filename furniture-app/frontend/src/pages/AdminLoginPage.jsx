@@ -95,7 +95,7 @@ export default function AdminLoginPage() {
                         <Field label="Email quản trị" error={errors.email}>
                             <Input
                                 type="email"
-                                placeholder="admin@amorehome.com"
+                                placeholder="email@gmail.com"
                                 value={form.email}
                                 onChange={set("email")}
                                 hasError={!!errors.email}

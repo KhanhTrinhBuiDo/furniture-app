@@ -107,7 +107,7 @@ export default function LoginPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                         <Field label="Email" error={errors.email}>
-                            <Input type="email" placeholder="email@example.com" value={form.email}
+                            <Input type="email" placeholder="email@gmail.com" value={form.email}
                                 onChange={set("email")} hasError={!!errors.email} disabled={loading}
                                 onKeyDown={e => e.key === "Enter" && handleSubmit(e)} />
                         </Field>

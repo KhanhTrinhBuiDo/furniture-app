@@ -196,7 +196,7 @@ export default function ForgotPasswordPage() {
                             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                                 <Field label="Email">
                                     <Input
-                                        type="email" placeholder="email@example.com"
+                                        type="email" placeholder="email@gmail.com"
                                         value={email} onChange={(e) => { setEmail(e.target.value); setErrors({}); }}
                                         hasError={!!errors.email} disabled={loading}
                                         onKeyDown={(e) => e.key === "Enter" && handleSendOTP(e)}

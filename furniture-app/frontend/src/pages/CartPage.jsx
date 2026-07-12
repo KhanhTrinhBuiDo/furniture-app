@@ -303,26 +303,26 @@ export default function CartPage() {
             <div style={{ padding: "20px 24px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                 <MF label="Họ và tên *" error={formErrors.fullName}>
-                  <MI name="fullName" placeholder="Nguyễn Văn A" value={formData.fullName} onChange={v => setFormData(p => ({ ...p, fullName: v }))} hasError={!!formErrors.fullName} />
+                  <MI name="fullName" placeholder="" value={formData.fullName} onChange={v => setFormData(p => ({ ...p, fullName: v }))} hasError={!!formErrors.fullName} />
                 </MF>
                 <MF label="Email *" error={formErrors.email}>
-                  <MI name="email" type="email" placeholder="email@example.com" value={formData.email} onChange={v => setFormData(p => ({ ...p, email: v }))} hasError={!!formErrors.email} />
+                  <MI name="email" type="email" placeholder="email@gmail.com" value={formData.email} onChange={v => setFormData(p => ({ ...p, email: v }))} hasError={!!formErrors.email} />
                 </MF>
                 <MF label="Điện thoại *" error={formErrors.phone}>
-                  <MI name="phone" type="tel" placeholder="0912345678" value={formData.phone} onChange={v => setFormData(p => ({ ...p, phone: v }))} hasError={!!formErrors.phone} />
+                  <MI name="phone" type="tel" placeholder="" value={formData.phone} onChange={v => setFormData(p => ({ ...p, phone: v }))} hasError={!!formErrors.phone} />
                 </MF>
                 <MF label="Tỉnh/Thành phố *" error={formErrors.city}>
-                  <MI name="city" placeholder="TP. Hồ Chí Minh" value={formData.city} onChange={v => setFormData(p => ({ ...p, city: v }))} hasError={!!formErrors.city} />
+                  <MI name="city" placeholder="" value={formData.city} onChange={v => setFormData(p => ({ ...p, city: v }))} hasError={!!formErrors.city} />
                 </MF>
                 <MF label="Quận/Huyện *" error={formErrors.district}>
-                  <MI name="district" placeholder="Quận 1" value={formData.district} onChange={v => setFormData(p => ({ ...p, district: v }))} hasError={!!formErrors.district} />
+                  <MI name="district" placeholder="" value={formData.district} onChange={v => setFormData(p => ({ ...p, district: v }))} hasError={!!formErrors.district} />
                 </MF>
                 <MF label="Phường/Xã">
-                  <MI name="ward" placeholder="Phường Bến Nghé" value={formData.ward} onChange={v => setFormData(p => ({ ...p, ward: v }))} />
+                  <MI name="ward" placeholder="" value={formData.ward} onChange={v => setFormData(p => ({ ...p, ward: v }))} />
                 </MF>
               </div>
               <MF label="Địa chỉ chi tiết *" error={formErrors.address} style={{ marginBottom: 14 }}>
-                <MI name="address" placeholder="123 Đường Lê Lợi" value={formData.address} onChange={v => setFormData(p => ({ ...p, address: v }))} hasError={!!formErrors.address} />
+                <MI name="address" placeholder="" value={formData.address} onChange={v => setFormData(p => ({ ...p, address: v }))} hasError={!!formErrors.address} />
               </MF>
               <MF label="Ghi chú" style={{ marginBottom: 20 }}>
                 <textarea placeholder="Ghi chú thêm..." value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} rows={2}

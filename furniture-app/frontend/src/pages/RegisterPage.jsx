@@ -141,12 +141,12 @@ export default function RegisterPage() {
 
                         {/* Full name */}
                         <Field label="Họ và tên" error={errors.fullName}>
-                            <Input placeholder="Nguyen Thi Hai Linh" value={form.fullName} onChange={set("fullName")} hasError={!!errors.fullName} disabled={loading} />
+                            <Input placeholder="" value={form.fullName} onChange={set("fullName")} hasError={!!errors.fullName} disabled={loading} />
                         </Field>
 
                         {/* Phone */}
                         <Field label="Số điện thoại" error={errors.phone}>
-                            <Input type="tel" placeholder="0909 355 355" value={form.phone} onChange={set("phone")} hasError={!!errors.phone} disabled={loading} />
+                            <Input type="tel" placeholder="" value={form.phone} onChange={set("phone")} hasError={!!errors.phone} disabled={loading} />
                         </Field>
 
                         {/* Date of birth */}
@@ -156,7 +156,7 @@ export default function RegisterPage() {
 
                         {/* Email */}
                         <Field label="Email" error={errors.email}>
-                            <Input type="email" placeholder="email@example.com" value={form.email} onChange={set("email")} hasError={!!errors.email} disabled={loading} />
+                            <Input type="email" placeholder="email@gmail.com" value={form.email} onChange={set("email")} hasError={!!errors.email} disabled={loading} />
                         </Field>
 
                         {/* Password */}

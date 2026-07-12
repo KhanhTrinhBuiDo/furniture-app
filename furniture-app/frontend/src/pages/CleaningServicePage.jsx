@@ -142,7 +142,7 @@ export default function CleaningServicePage() {
                                     </div>
                                     <div>
                                         <label style={styles.label}>Số điện thoại *</label>
-                                        <input type="tel" placeholder="0912345678" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} style={styles.input} />
+                                        <input type="tel" placeholder="" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} style={styles.input} />
                                     </div>
                                 </div>
 

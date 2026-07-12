@@ -127,7 +127,7 @@ export default function TradeInPage() {
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
                             <div>
                                 <label style={styles.label}>Số điện thoại liên hệ *</label>
-                                <input type="tel" placeholder="0912345678" value={form.contactPhone} onChange={e => setForm(f => ({ ...f, contactPhone: e.target.value }))} style={styles.input} />
+                                <input type="tel" placeholder="" value={form.contactPhone} onChange={e => setForm(f => ({ ...f, contactPhone: e.target.value }))} style={styles.input} />
                             </div>
                             <div>
                                 <label style={styles.label}>Địa chỉ (nếu cần thẩm định tại nhà)</label>

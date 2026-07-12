@@ -342,7 +342,7 @@ export default function AdminProducts() {
 
                                 {/* Tồn kho */}
                                 <MF label="Tồn kho">
-                                    <MI type="number" value={form.stock} onChange={v => setForm(p => ({ ...p, stock: v }))} placeholder="0" />
+                                    <MI type="number" value={form.stock} onChange={v => setForm(p => ({ ...p, stock: v }))} placeholder="" />
                                 </MF>
 
                                 {/* Mô tả */}

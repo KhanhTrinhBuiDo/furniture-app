@@ -186,7 +186,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleInputChange}
-                placeholder="Nguyễn Văn A"
+                placeholder=""
                 style={{
                   ...styles.input,
                   borderColor: errors.fullName ? colors.error : colors.sand,
@@ -203,7 +203,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="email@example.com"
+                placeholder="email@gmail.com"
                 style={{
                   ...styles.input,
                   borderColor: errors.email ? colors.error : colors.sand,
@@ -223,7 +223,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="0912345678"
+                placeholder=""
                 style={{
                   ...styles.input,
                   borderColor: errors.phone ? colors.error : colors.sand,
@@ -240,7 +240,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
-                placeholder="TP. Hồ Chí Minh"
+                placeholder=""
                 style={{
                   ...styles.input,
                   borderColor: errors.city ? colors.error : colors.sand,
@@ -260,7 +260,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
                 name="district"
                 value={formData.district}
                 onChange={handleInputChange}
-                placeholder="Quận 1"
+                placeholder=""
                 style={{
                   ...styles.input,
                   borderColor: errors.district ? colors.error : colors.sand,
@@ -277,7 +277,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
                 name="ward"
                 value={formData.ward}
                 onChange={handleInputChange}
-                placeholder="Phường Bến Nghé"
+                placeholder=""
                 style={styles.input}
                 disabled={loading}
               />
@@ -292,7 +292,7 @@ export default function PaymentModal({ isOpen, onClose, cartItems }) {
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              placeholder="123 Đường Nguyễn Huệ"
+              placeholder=""
               style={{
                 ...styles.input,
                 borderColor: errors.address ? colors.error : colors.sand,

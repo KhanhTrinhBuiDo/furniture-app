@@ -147,7 +147,7 @@ export default function ProfilePage() {
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
                             <div>
                                 <label style={styles.label}>Số điện thoại</label>
-                                <input type="tel" name="phone" placeholder="0912345678" value={form.phone} onChange={handleInfoChange} style={styles.input} />
+                                <input type="tel" name="phone" placeholder="" value={form.phone} onChange={handleInfoChange} style={styles.input} />
                             </div>
                             <div>
                                 <label style={styles.label}>Ngày sinh</label>
