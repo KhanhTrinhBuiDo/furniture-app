@@ -10,7 +10,9 @@ export default function ProductCard({ product }) {
   const { addToCart, navigate, setSelectedProduct, toggleWishlist, isWishlisted } = useStore();
   const [hovered, setHovered] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
+  const [popupSide, setPopupSide] = useState("right");
   const hoverTimer = useRef(null);
+  const cardRef = useRef(null);
 
   const id = product._id || product.id;
   const inWish = isWishlisted(id);
@@ -26,6 +28,12 @@ export default function ProductCard({ product }) {
 
   const handleMouseEnter = () => {
     setHovered(true);
+    // Nếu bung sang phải mà tràn ra ngoài màn hình thì tự chuyển sang trái.
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const POPUP_WIDTH_WITH_GAP = 260 + 12; // khớp width .quickView + gap trong CSS
+      setPopupSide(rect.right + POPUP_WIDTH_WITH_GAP > window.innerWidth ? "left" : "right");
+    }
     hoverTimer.current = setTimeout(() => setShowQuickView(true), 380);
   };
 
@@ -37,6 +45,7 @@ export default function ProductCard({ product }) {
 
   return (
     <motion.div
+      ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       whileHover={{ y: -6 }}
@@ -109,6 +118,7 @@ export default function ProductCard({ product }) {
             transition={{ duration: 0.18 }}
             onClick={(e) => e.stopPropagation()}
             className={styles.quickView}
+            data-side={popupSide}
           >
             <div className={styles.quickViewArrow} />
 

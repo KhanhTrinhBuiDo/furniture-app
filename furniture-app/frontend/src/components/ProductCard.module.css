@@ -10,6 +10,7 @@
 
 .card[data-hovered="true"] {
     box-shadow: var(--shadow-lg);
+    z-index: 30;
 }
 
 .cardInner {
@@ -184,6 +185,31 @@
     background: #fff;
     border-left: 1px solid var(--color-sand);
     border-bottom: 1px solid var(--color-sand);
+}
+
+/* Khi không đủ chỗ bên phải, popup tự bung sang trái card (xem
+   handleMouseEnter trong ProductCard.jsx — tự đo vị trí bằng
+   getBoundingClientRect trước khi hiện popup). */
+.quickView[data-side="left"] {
+    left: auto;
+    right: calc(100% + 12px);
+}
+
+.quickView[data-side="left"] .quickViewArrow {
+    left: auto;
+    right: -6px;
+    border-left: none;
+    border-bottom: none;
+    border-right: 1px solid var(--color-sand);
+    border-top: 1px solid var(--color-sand);
+}
+
+/* Hover không có ý nghĩa trên thiết bị cảm ứng, và popup dạng side-panel
+   dễ tràn màn hình trên mobile — ẩn hẳn quick-view ở màn hình hẹp. */
+@media (max-width: 900px) {
+    .quickView {
+        display: none;
+    }
 }
 
 .quickViewCategory {
