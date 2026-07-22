@@ -2,9 +2,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 
 const images = [
-  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-  "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb3?w=800"
+  "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786051/living_q7nigh.png",
+  "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786048/bed_iwitsb.png",
+  "https://res.cloudinary.com/f4dgf8a1/image/upload/v1783786050/garden_e3upmi.png"
 ];
 
 export default function RoomSlider() {
